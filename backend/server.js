@@ -1,13 +1,11 @@
-// server.js
 const express = require('express');
 const app = express();
-const port = 3000; // Change this to your desired port number
+const port = 3000; 
 
 // Import the database connection function and models
 const connectDB = require('./database');
 const { Benefit, Plan } = require('./models');
 
-// Parse JSON request bodies
 app.use(express.json());
 
 // Start the server and connect to the database

@@ -8,7 +8,7 @@ const benefitDetailSchema = new Schema({
 
 // Define Benefit schema
 const benefitSchema = new Schema({
-  name: { type: String, required: true }
+  name: { type: String, required: true }, benefitDetails: [{ type: Schema.Types.ObjectId, ref: 'BenefitDetail' }]
 });
 
 // Define Plan schema
