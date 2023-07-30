@@ -4,10 +4,8 @@ const multer = require('multer');
 const xlsx = require('xlsx');
 const router = express.Router();
 const upload = multer({ dest: 'uploads/' });
-const { Benefit, Plan } = require('./models');
-const { MongoClient } = require('mongodb');
-// Assuming you have already defined the necessary imports and configurations above
-const mongoURI = 'mongodb+srv://iancucristina:stud@clusterseminar.rytdhbp.mongodb.net/';
+const { BenefitDetail, Benefit, Plan } = require('./models');
+
 
 router.post('/plans', upload.single('file'), async (req, res) => {
     try {
@@ -23,8 +21,8 @@ router.post('/plans', upload.single('file'), async (req, res) => {
         for (const row of data) {
             const planName = row.__EMPTY;
             const benefitName = row.__EMPTY_1;
-            const benefitDescription = row.__EMPTY_2;
-            console.log(planName, benefitName,benefitDescription)
+            const benefitDetailDescription = row.__EMPTY_2;
+            console.log(planName, benefitName, benefitDetailDescription)
             try {
                 // Check if the plan already exists in the database
                 let existingPlan = await Plan.findOne({ name: planName });
@@ -32,7 +30,6 @@ router.post('/plans', upload.single('file'), async (req, res) => {
                 if (!existingPlan) {
                     const newPlan = { name: planName, benefits: [] };
                     const result = await Plan.insertMany([newPlan]);
-                    console.log(result)
                     existingPlan = result[0];
                 }
 
@@ -41,9 +38,17 @@ router.post('/plans', upload.single('file'), async (req, res) => {
 
                 // If the benefit doesn't exist, insert it into the database
                 if (!existingBenefit) {
-                    const newBenefit = { name: benefitName, description: benefitDescription };
+                    const newBenefit = { name: benefitName, benefitDetails: [] };
                     const result = await Benefit.insertMany([newBenefit]);
                     existingBenefit = result[0];
+                }
+                let existingDetail = await BenefitDetail.findOne({ description: benefitDetailDescription });
+                // Add the detail to the beenfit's details array if not already there
+                if (!existingBenefit.benefitDetails.some((b) => b._id.equals(existingDetail._id))) {
+                    await Benefit.updateOne(
+                        { _id: existingBenefit._id },
+                        { $push: { benefitDetails: existingDetail } }
+                    );
                 }
 
                 // Add the benefit to the plan's benefits array if not already there

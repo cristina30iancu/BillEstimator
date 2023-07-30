@@ -17,6 +17,6 @@ connectDB().then(() => {
   });
 });
 
-// Define your endpoints here
+// Defining, declaring and using the endpoints here
 const endpoints = require('./endpoints');
 app.use('/api', endpoints);
