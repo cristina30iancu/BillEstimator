@@ -14,7 +14,14 @@ const benefitSchema = new Schema({
 // Define Plan schema
 const planSchema = new Schema({
   name: { type: String, required: true },
-  benefits: [{ type: Schema.Types.ObjectId, ref: 'Benefit' }],
+  linePrices: [
+    {
+      line: { type: Number, required: false },
+      freeLinePromotion: { type: String, enum: ['Y', 'N'], required: false },
+      combinedMRCExisting: { type: Number, required: false },
+    },
+  ],
+  benefits: [{ type: Schema.Types.ObjectId, ref: 'Benefit', required: false }]
 });
 
 // Create models for Benefit and Plan
