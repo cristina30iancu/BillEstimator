@@ -1,0 +1,229 @@
+.quote {
+  font-family: 'TeleNeo';
+  font-style: normal;
+  font-weight: 800;
+  font-size: 18px;
+  line-height: 13px;
+  color: #E20074;
+}
+
+select {
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border: 1px solid #DEE0E3;
+  border-radius: 4px;
+}
+
+label,
+select,
+input {
+  font-family: 'TeleNeo';
+  line-height: 10px;
+  color: rgba(0, 0, 0, 0.806);
+  word-wrap: break-word;
+  margin: auto;
+}
+
+input {
+  outline: 0;
+  border-width: 0 0 2px;
+  border-color: gray;
+}
+
+.refresh {
+  padding: 10px 10px;
+  background: #E5E5E5;
+  box-shadow: 0px 2px 4px rgba(136, 144, 194, 0.2), 0px 5px 15px rgba(37, 44, 97, 0.15);
+  border-radius: 8px;
+  border: 1px solid #5F5F5F;
+  font-family: 'TeleNeo';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 100%;
+  color: #5F5F5F;
+  border-radius: 10px;
+  border: none;
+  margin-right: 10px;
+}
+
+.print {
+  padding: 10px 16px;
+  gap: 10px;
+  background: #E20074;
+  box-shadow: 0px 2px 4px rgba(136, 144, 194, 0.2), 0px 5px 15px rgba(37, 44, 97, 0.15);
+  border-radius: 8px;
+  font-family: 'TeleNeo';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 100%;
+  color: #FFFFFF;
+  border-radius: 10px;
+  border: none;
+}
+
+.my-submit {
+  filter: drop-shadow(0px 4px 4px rgba(0, 0, 0, 0.25));
+  background: #FFFFFF;
+  border-radius: 4px;
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 9px;
+  line-height: 11px;
+  color: #666666;
+  border: none;
+  padding-right: 0 !important;
+  padding-left: 0 !important;
+  background-image: none !important;
+  text-align: center;
+}
+
+.add-btn {
+  background-image: none !important;
+  box-sizing: border-box;
+  background: #FFFFFF;
+  border: 1px dashed #DEE0E3 !important;
+  border-radius: 4px;
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 9px;
+  line-height: 11px;
+  color: #666666;
+}
+
+
+
+/* styles.css */
+/* Customize the styles for smaller screens */
+@media (max-width: 767px) {
+
+  .col-md-3,
+  .col-md-4 {
+    flex-basis: 100%;
+    max-width: 100%;
+  }
+
+  /* Adjust the font size and add word-wrap for labels and text */
+  label,
+  input,
+  select {
+    font-size: 14px;
+    word-wrap: break-word;
+  }
+
+  .mt-3 {
+    margin-top: 10px;
+  }
+
+  /* Prevent text from wrapping and hide overflow */
+  .my-auto {
+    white-space: nowrap;
+    overflow: hidden;
+  }
+}
+
+.plan-cost {
+  border: 0.5px solid #000000;
+  font-family: 'TeleNeo';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 13px;
+  color: rgba(0, 0, 0, 0.76);
+}
+
+.plan-info {
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 12px;
+  line-height: 8px;
+  color: #666666;
+  margin-top: 10px;
+}
+
+.table td,
+.table th {
+  border: none !important;
+}
+
+.total-col {
+  font-family: 'TeleNeo';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 14px;
+  line-height: 13px;
+  color: #00A99D;
+}
+
+.total-col .discount {
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-weight: 700;
+  font-size: 18px;
+  line-height: 19px;
+  text-align: center;
+  color: #00A99D;
+}
+
+.discount-col {
+  background: rgba(0, 0, 0, 0.76) !important;
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-size: 12px;
+  line-height: 12px;
+  color: #FFFFFF;
+  height: 100%;
+}
+
+.discount-col .discounts {
+  text-align: right;
+  font-weight: 700;
+}
+
+.discount-col tbody tr,
+.discount-col tbody td {
+  background: rgb(56, 56, 56) !important;
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-size: 12px;
+  line-height: 12px;
+  color: #FFFFFF;
+}
+
+.proration {
+  background: #E5E5E5 !important;
+}
+
+.proration-cost {
+  font-family: 'TeleNeo';
+  font-style: normal;
+  font-size: 14px;
+  line-height: 13px;
+  color: rgba(0, 0, 0, 0.76);
+}
+
+.final-price {
+  color: #E20074 !important;
+  font-weight: 700;
+}
+
+.benefits {
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-weight: 500;
+  font-size: 14px;
+  color: rgba(0, 0, 0, 0.76);
+  border: 0.5px solid #000000;
+}
+
+.details {
+  font-family: 'TT Norms Pro';
+  font-style: normal;
+  font-weight: 500;
+  font-size: 18px;
+  border: 0.5px solid #000000;
+}
