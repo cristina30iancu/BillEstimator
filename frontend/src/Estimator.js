@@ -1,4 +1,4 @@
-import { useEffec, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
@@ -7,11 +7,38 @@ import { ApprovedDevicesForm } from './ApprovedDevicesForm';
 import { useReactToPrint } from 'react-to-print';
 
 export const Eestimator = () => {
+    const [plans, setPlans] = useState([]);
+    const [plan,setPlan] = useState()
+    const [line,setLine] = useState()
+    const [planCost, setPlanCost] = useState(0)
     const componentRef = useRef();
+
     const handlePrint = useReactToPrint({
         content: () => componentRef.current
-      });
-      
+    });
+
+    const fetchPlans = async () => {
+        const res = await fetch('http://localhost:3030/api/plans');
+        const data = await res.json();
+        setPlans(data);
+    }
+
+    const computeCost = () => {
+        if(plan && line){
+            const selectedPlan = plans.find((p, idx) => p._id == plan)
+            const selectedLine = selectedPlan?.linePrices.find((l,i)=> l.line == line)
+            setPlanCost(selectedLine?.combinedMRCExisting)
+        }
+    }
+
+    useEffect(() => {
+        fetchPlans()
+    }, []);
+
+    useEffect(() => {
+        computeCost()
+    }, [plan, line]);
+
     return (<>
         <div className='container-fluid p-5' ref={componentRef} style={{ margin: 0 }}>
             <div class="form-inline">
@@ -23,15 +50,19 @@ export const Eestimator = () => {
                     <input type="text" id="input1" />
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <label className='control-label mr-3' htmlFor="input2">Customer Loyalty</label>
-                    <input type="text" id="input2" />
+                    <label className='control-label mr-3'>Customer Loyalty</label>
+                    <select className='loyalty'>
+                        <option value="New">New</option>
+                        <option value="Existing">Existing</option>
+                        <option value="Insider">New [Insider]</option>
+                    </select>
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
                     <label className='control-label' htmlFor="input3">
                         Years with T-Mobile
-                        <span style={{ fontSize: '0.7rem', marginRight:'15px'}}> [Add on Upgrades only]</span>
+                        <span style={{ fontSize: '0.7rem', marginRight: '15px' }}> [Add on Upgrades only]</span>
                     </label>
-                    <input type="number" id="input3" style={{width: '50px'}}/>
+                    <input type="number" id="input3" style={{ width: '50px' }} />
                 </div>
             </div>
             <div className='second form-row p-1 d-flex justify-content-between mt-4'>
@@ -44,20 +75,26 @@ export const Eestimator = () => {
 
                 <div className='form-group  col-lg-2 mt-2'>
                     <label className='control-label ' htmlFor="select2">Base Plan # of Lines</label>
-                    <select id='select2' className='form-select'>
-                        <option>1</option>
+                    <select onChange={e=> setLine(e.target.value)} id='select2' className='form-select'>
+                        {Array.from({ length: 10 }, (_, index) => (
+                            <option key={index + 1} value={index + 1}>
+                                {index + 1}
+                            </option>
+                        ))}
                     </select>
                 </div>
 
                 <div className='form-group col-lg-3 mt-2'>
                     <label className='control-label ' htmlFor="select3">Plan Type</label>
-                    <select id='select3' className='form-select'>
-                        <option>Choose a plan</option>
+                    <select onChange={e=> setPlan(e.target.value)} id='select3' className='form-select'>
+                        {plans.map((plan, i) => (
+                            <option key={plan._id} value={plan._id}>{plan.name}</option>
+                        ))}                        
                     </select>
                 </div>
                 <div className='form-group col-lg-2 mt-2 '>
                     <label className='control-label ' htmlFor="input4">Plan Monthly Cost</label>
-                    <input className='form-control w-25' type="number" id="input4" />
+                    <input value={planCost} className='form-control w-25' type="number" id="input4" />
                 </div>
                 <div className='form-group col-lg-2 mt-2 d-flex justify-content-center align-items-end exclude-from-print'>
                     <button className='refresh exclude-from-print'>
@@ -155,8 +192,8 @@ export const Eestimator = () => {
                     </div>
                 </div>
             </div>
-            <CarrierForm/>
-            <ApprovedDevicesForm/>
+            <CarrierForm />
+            <ApprovedDevicesForm />
             <div className="row mx-1" style={{ borderTop: '1px solid black' }}>
                 <div className="col-md-6 border-end border-dark">
                     <p className="mt-3 font-weight-bold">Trade-In Devices</p>

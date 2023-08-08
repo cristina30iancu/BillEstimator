@@ -1,6 +1,16 @@
 * {
   font-size: 12px;
 }
+.loyalty {
+  outline: 0;
+  border-width: 0 0 2px;
+  border-color: gray;
+  border-radius: 0%;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
 .quote {
   font-family: 'TeleNeo';
   font-style: normal;

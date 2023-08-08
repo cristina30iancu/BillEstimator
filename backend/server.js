@@ -1,10 +1,15 @@
 const express = require('express');
+const cors = require('cors');
 const app = express();
-const port = 3000; 
+const port = 3030; 
 
+var corsOptions = {
+  origin: "http://localhost:3000",
+};
+
+app.use(cors(corsOptions));
 // Import the database connection function and models
 const connectDB = require('./database');
-const { Benefit, Plan } = require('./models');
 
 app.use(express.json());
 
