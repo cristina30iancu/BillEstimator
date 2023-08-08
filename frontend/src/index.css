@@ -1,3 +1,6 @@
+* {
+  font-size: 12px;
+}
 .quote {
   font-family: 'TeleNeo';
   font-style: normal;
@@ -227,4 +230,11 @@ input {
   font-weight: 500;
   font-size: 18px;
   border: 0.5px solid #000000;
+}
+
+/* In your CSS file */
+@media print {
+  .exclude-from-print {
+    display: none !important;
+  }
 }

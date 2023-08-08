@@ -4,32 +4,37 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import { CarrierForm } from './CarrierForm';
 import { ApprovedDevicesForm } from './ApprovedDevicesForm';
-
+import { useReactToPrint } from 'react-to-print';
 
 export const Eestimator = () => {
+    const componentRef = useRef();
+    const handlePrint = useReactToPrint({
+        content: () => componentRef.current
+      });
+      
     return (<>
-        <div className='container-fluid' style={{ margin: 0 }}>
+        <div className='container-fluid p-5' ref={componentRef} style={{ margin: 0 }}>
             <div class="form-inline">
                 <div class="form-group mb-2">
                     <label className='quote mt-3 mr-3'>CUSTOMER QUOTE</label>
                 </div>
                 <div class="form-group mb-2">
-                    <label className='control-label mr-2' htmlFor="input1">Customer Name</label>
+                    <label className='control-label mr-3' htmlFor="input1">Customer Name</label>
                     <input type="text" id="input1" />
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
-                    <label className='control-label mr-2' htmlFor="input2">Customer Loyalty</label>
+                    <label className='control-label mr-3' htmlFor="input2">Customer Loyalty</label>
                     <input type="text" id="input2" />
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
                     <label className='control-label' htmlFor="input3">
                         Years with T-Mobile
-                        <span style={{ fontSize: '0.7rem' }}> [Add on Upgrades only]</span>
+                        <span style={{ fontSize: '0.7rem', marginRight:'15px'}}> [Add on Upgrades only]</span>
                     </label>
-                    <input type="number" id="input3" />
+                    <input type="number" id="input3" style={{width: '50px'}}/>
                 </div>
             </div>
-            <div className='second form-row p-1 d-flex justify-content-between'>
+            <div className='second form-row p-1 d-flex justify-content-between mt-4'>
                 <div className='form-group col-lg-2  mt-2'>
                     <label className='control-label' htmlFor="select1">Plan</label>
                     <select id='select1' className='form-select'>
@@ -54,8 +59,8 @@ export const Eestimator = () => {
                     <label className='control-label ' htmlFor="input4">Plan Monthly Cost</label>
                     <input className='form-control w-25' type="number" id="input4" />
                 </div>
-                <div className='form-group col-lg-2 mt-2 d-flex justify-content-center align-items-end'>
-                    <button className='refresh'>
+                <div className='form-group col-lg-2 mt-2 d-flex justify-content-center align-items-end exclude-from-print'>
+                    <button className='refresh exclude-from-print'>
                         <svg width="13" height="14" viewBox="0 0 13 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                             <path d="M12.5 6.11565C12.3166 4.79582 11.7043 3.5729 10.7575 2.63528C9.81066 1.69765 8.58182 1.09734 7.26025 0.926819C5.93869 0.756295 4.59772 1.02502 3.4439 1.69159C2.29009 2.35816 1.38744 3.38561 0.875 4.61565M0.5 1.61566V4.61565H3.5M0.5 7.61565C0.683419 8.93549 1.2957 10.1584 2.24252 11.096C3.18934 12.0337 4.41818 12.634 5.73975 12.8045C7.06131 12.975 8.40228 12.7063 9.5561 12.0397C10.7099 11.3731 11.6126 10.3457 12.125 9.11565M12.5 12.1157V9.11565H9.5" stroke="#5F5F5F" stroke-linecap="round" stroke-linejoin="round" />
                         </svg>
@@ -63,11 +68,11 @@ export const Eestimator = () => {
                     </button>
                 </div>
                 <div className='form-group col-lg-1 mt-2 d-flex justify-content-center align-items-end'>
-                    <button className='print'>PRINT PREVIEW</button>
+                    <button onClick={handlePrint} className='print exclude-from-print'>PRINT PREVIEW</button>
                 </div>
 
             </div>
-            <div className="row h-100 ">
+            <div className="row h-100 mt-3">
                 <div className="col-6 ">
                     <div className='col-12 h-100 py-2 plan-cost'>
                         <table className='table'>
@@ -102,7 +107,7 @@ export const Eestimator = () => {
                     </div>
                 </div>
             </div>
-            <div className="row h-100 ">
+            <div className="row h-100 mt-3">
                 <div className="col-6">
                     <div className='row proration-cost'>
                         <div className='col-12 h-100 py-2 proration-cost'>
@@ -169,7 +174,7 @@ export const Eestimator = () => {
                                     <div class="col-md-6">
                                         <p>iPhone X</p>
                                     </div>
-                                    <div class="col-md-6 text-right">
+                                    <div class="col-md-6 text-right exclude-from-print">
                                         <FontAwesomeIcon className='mr-2' icon={faEdit} />
                                         <FontAwesomeIcon icon={faTrashAlt} />
                                     </div>
@@ -199,7 +204,7 @@ export const Eestimator = () => {
                                 <p>$20.00</p>
                             </div>
                         </div>
-                        <div className="col-md-2">
+                        <div className="col-md-2 exclude-from-print">
                             <div className="form-group">
                                 <label>&nbsp;</label>
                                 <br />
@@ -242,7 +247,7 @@ export const Eestimator = () => {
                                     <div class="col-md-6">
                                         <p>Autopay Discount $5/line</p>
                                     </div>
-                                    <div class="col-md-6 text-right">
+                                    <div class="col-md-6 text-right exclude-from-print">
                                         <FontAwesomeIcon className='mr-2' icon={faEdit} />
                                         <FontAwesomeIcon icon={faTrashAlt} />
                                     </div>
@@ -256,7 +261,7 @@ export const Eestimator = () => {
                                 <p>1</p>
                             </div>
                         </div>
-                        <div className="col-md-2">
+                        <div className="col-md-2 exclude-from-print">
                             <div className="form-group">
                                 <label>&nbsp;</label>
                                 <br />
@@ -264,7 +269,7 @@ export const Eestimator = () => {
                                 <p className="text-light">.</p>
                             </div>
                         </div>
-                        <div className="col-md-2">
+                        <div className="col-md-2 exclude-from-print">
                             <div className="form-group">
                                 <label>&nbsp;</label>
                                 <button className="btn add-btn h-100 w-100">
@@ -311,7 +316,7 @@ export const Eestimator = () => {
                     </div>
                 </div>
 
-                <div className="col-md-6">
+                <div className="col-md-6 exclude-from-print">
                     <div className="row mt-2">
                         <div className='col-md-2'>
                             Differences
@@ -345,7 +350,7 @@ export const Eestimator = () => {
                 </div>
             </div>
 
-            <div className="row h-100 ">
+            <div className="row h-100 mt-5">
                 <p className='quote'>DESCRIPTION OF PLANS & BENEFITS</p>
                 <div className="col-8 ">
                     <div className='col-12 h-100 py-2 benefits'>
