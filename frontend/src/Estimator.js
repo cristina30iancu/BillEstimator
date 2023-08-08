@@ -32,7 +32,7 @@ export const Eestimator = () => {
                 <div className='form-group col-lg-2  mt-2'>
                     <label className='control-label' htmlFor="select1">Plan</label>
                     <select id='select1' className='form-select'>
-                        <option>Choose a plan</option>
+                        <option>Magenta</option>
                     </select>
                 </div>
 
