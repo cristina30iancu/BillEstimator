@@ -22,6 +22,7 @@ input {
   color: rgba(0, 0, 0, 0.806);
   word-wrap: break-word;
   margin: auto;
+  font-size: 14px;
 }
 
 input {
@@ -110,7 +111,7 @@ input {
   label,
   input,
   select {
-    font-size: 14px;
+    font-size: 12px;
     word-wrap: break-word;
   }
 
