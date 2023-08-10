@@ -8,8 +8,12 @@ import { useReactToPrint } from 'react-to-print';
 
 export const Eestimator = () => {
     const [plans, setPlans] = useState([]);
-    const [plan,setPlan] = useState()
-    const [line,setLine] = useState()
+    const [lines, setLines] = useState([])
+
+    const [planObj, setPlanObj] = useState(undefined)
+    const [plan, setPlan] = useState(undefined)
+    const [loyalty, setLoyalty] = useState()
+    const [line, setLine] = useState()
     const [planCost, setPlanCost] = useState(0)
     const componentRef = useRef();
 
@@ -21,13 +25,62 @@ export const Eestimator = () => {
         const res = await fetch('http://localhost:3030/api/plans');
         const data = await res.json();
         setPlans(data);
+        setPlan(data[0]?._id)
+        setPlanObj(data[0])
+        setLine(data[0].linePrices[0]?.line)
     }
 
     const computeCost = () => {
-        if(plan && line){
+        if (plan && line) {
             const selectedPlan = plans.find((p, idx) => p._id == plan)
-            const selectedLine = selectedPlan?.linePrices.find((l,i)=> l.line == line)
-            setPlanCost(selectedLine?.combinedMRCExisting)
+            const selectedLine = selectedPlan?.linePrices.find((l, i) => l.line == line)
+
+            if (selectedPlan.name == "$20 Talk & Text") {
+                setPlanCost(line * 20)
+                return
+            }
+
+            let previousLineMRC = 0
+            if (line > 1) {
+                previousLineMRC = selectedPlan?.linePrices.find((l, i) => l.line == (line - 1)).combinedMRCExisting
+            }
+
+            let combinedMRCNew = selectedLine?.combinedMRCExisting
+            let combinedMRCNewWithAutoPay = selectedLine?.combinedMRCExisting - 5
+
+            if (line > 1 && selectedLine.freeLinePromotion == "N") {
+                let MRC = selectedLine?.combinedMRCExisting - previousLineMRC
+                combinedMRCNew = previousLineMRC + MRC
+                const calculatedValue = calculateHi(selectedLine?.combinedMRCExisting - 5, line, MRC) - (5 * (line - 1));
+                console.log('c: ', calculatedValue)
+                combinedMRCNewWithAutoPay = calculatedValue
+                console.log('MRC ', MRC, ' combinedMRCNew ', combinedMRCNew, ' H ', calculatedValue, ' combinedMRCNewWithAutoPay: ', combinedMRCNewWithAutoPay)
+            } else if (line > 1 && selectedLine.freeLinePromotion == "Y") {
+                let MRC = selectedLine?.combinedMRCExisting - previousLineMRC
+                combinedMRCNew = previousLineMRC
+                combinedMRCNewWithAutoPay = calculateHi(selectedLine?.combinedMRCExisting - 5, line, MRC) - (5 * (line - 1));
+                console.log('MRC ', MRC, ' combinedMRCNew ', combinedMRCNew, ' H ', combinedMRCNewWithAutoPay, ' combinedMRCNewWithAutoPay: ', combinedMRCNewWithAutoPay)
+            }
+
+            let autoPay = combinedMRCNew - combinedMRCNewWithAutoPay
+            console.log('autopay ', autoPay)
+            if (loyalty === "Insider") {
+                let cost = (combinedMRCNew - autoPay) * 0.8 + autoPay
+                setPlanCost(cost)
+            } else if (loyalty === "Existing") {
+                setPlanCost(selectedLine?.combinedMRCExisting)
+            } else {
+                setPlanCost(combinedMRCNew)
+            }
+        }
+    }
+
+    function calculateHi(startingValue, i, Di) {
+        if (i === 1) {
+            return startingValue;
+        } else {
+            const previousHi = calculateHi(startingValue, i - 1, Di);
+            return previousHi;
         }
     }
 
@@ -37,7 +90,7 @@ export const Eestimator = () => {
 
     useEffect(() => {
         computeCost()
-    }, [plan, line]);
+    }, [plan, line, loyalty]);
 
     return (<>
         <div className='container-fluid p-5' ref={componentRef} style={{ margin: 0 }}>
@@ -51,7 +104,7 @@ export const Eestimator = () => {
                 </div>
                 <div class="form-group mx-sm-3 mb-2">
                     <label className='control-label mr-3'>Customer Loyalty</label>
-                    <select className='loyalty'>
+                    <select className='loyalty' onChange={e => setLoyalty(e.target.value)} >
                         <option value="New">New</option>
                         <option value="Existing">Existing</option>
                         <option value="Insider">New [Insider]</option>
@@ -75,21 +128,19 @@ export const Eestimator = () => {
 
                 <div className='form-group  col-lg-2 mt-2'>
                     <label className='control-label ' htmlFor="select2">Base Plan # of Lines</label>
-                    <select onChange={e=> setLine(e.target.value)} id='select2' className='form-select'>
-                        {Array.from({ length: 10 }, (_, index) => (
-                            <option key={index + 1} value={index + 1}>
-                                {index + 1}
-                            </option>
+                    <select value={line} onChange={e => setLine(e.target.value)} id='select2' className='form-select'>
+                        {plan && planObj.linePrices.map((l, i) => (
+                            <option key={l.line} value={l.line}>{l.line}</option>
                         ))}
                     </select>
                 </div>
 
                 <div className='form-group col-lg-3 mt-2'>
                     <label className='control-label ' htmlFor="select3">Plan Type</label>
-                    <select onChange={e=> setPlan(e.target.value)} id='select3' className='form-select'>
+                    <select value={plan} onChange={e => {setPlan(e.target.value); setPlanObj(plans.find((p, idx) => p._id == e.target.value))}} id='select3' className='form-select'>
                         {plans.map((plan, i) => (
                             <option key={plan._id} value={plan._id}>{plan.name}</option>
-                        ))}                        
+                        ))}
                     </select>
                 </div>
                 <div className='form-group col-lg-2 mt-2 '>
@@ -392,39 +443,11 @@ export const Eestimator = () => {
                 <div className="col-8 ">
                     <div className='col-12 h-100 py-2 benefits'>
                         <ul>
-                            <li>
-                                <strong>Talk and text:</strong> unlimited
-                            </li>
-                            <li>
-                                <strong>High-speed data:</strong> unlimited data on our 5G access with compatible device & coverage area
-                            </li>
-                            <li>
-                                <strong>Premium data:</strong> 100GB Premium Data
-                            </li>
-                            <li>
-                                <strong>High-speed data:</strong> 15GB of high-speed mobile hotspot data included. Unlimited mobile hotspot data at max 3G speed after 15GB
-                            </li>
-                            <li>
-                                <strong>Video streaming quality:</strong> up to 720p HD video streaming (must activate HD video streaming)
-                            </li>
-                            <li>
-                                <strong>Autopay discount:</strong> eligible
-                            </li>
-                            <li>
-                                <strong>Tax and fee:</strong> included
-                            </li>
-                            <li>
-                                <strong>Entertainment:</strong> Netflix on us: basic 1-screen (requires 2+ lines of this plan). Apple TV+ on us for 6 months
-                            </li>
-                            <li>
-                                <strong>International:</strong> Canada and Mexico included with up to 10GB of high-speed data. Simple Global (Go5G, Magenta, Advanced Experience. State Ide International Unlimited Texting
-                            </li>
-                            <li>
-                                <strong>Travel Benefits:</strong> T-Mobile in-flight connection. AAA on us for 12 months
-                            </li>
-                            <li>
-                                <strong>Additional Benefits:</strong> Scam Shield, Free Caller ID. Turn on Scam Block, Free PROXY by DIGITS lines
-                            </li>
+                            {planObj?.benefits.map((b, idx) => (
+                                <li>
+                                    <strong>{b.name}:</strong> {b.benefitDetails.map((bd, i) => bd.description)}
+                                </li>
+                            ))}
                         </ul>
                     </div>
                 </div>

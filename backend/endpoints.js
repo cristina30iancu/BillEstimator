@@ -13,14 +13,13 @@ router.post('/plans', upload.single('file'), async (req, res) => {
 
         const workbook = xlsx.readFile(req.file.path);
         const sheetName = workbook.SheetNames[2];
-        const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
+        const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
 
         for (const row of data) {
             const { Plan: planName, Line } = row;
             console.log("Adding " + planName)
             const freeLinePromotionValue = row['Free Line Promotion [Y/N]'];
             const combinedMRCExistingValue = row['Combined MRC [Existing]'];
-
             try {
                 let existingPlan = await Plan.findOne({ name: planName });
                 if (!existingPlan) {
@@ -34,7 +33,8 @@ router.post('/plans', upload.single('file'), async (req, res) => {
                     (entry) => entry.line === Line
                 );
 
-                if (!linePriceEntry) {
+
+                if (!linePriceEntry && Number.isInteger(combinedMRCExistingValue)) {
                     // If the linePrice entry doesn't exist, create a new one
                     const newLinePriceEntry = {
                         line: Line,
@@ -47,7 +47,7 @@ router.post('/plans', upload.single('file'), async (req, res) => {
 
                     // Save the updated plan document
                     await existingPlan.save();
-                } else {
+                } else if (linePriceEntry) {
                     // If the linePrice entry already exists, update its values
                     linePriceEntry.hasPromotion = freeLinePromotionValue;
                     linePriceEntry.fixedPrice = combinedMRCExistingValue;
@@ -71,7 +71,6 @@ router.post('/plans', upload.single('file'), async (req, res) => {
 async function addBenefitDetail(benefitId, description) {
     try {
         let existingDetail = await BenefitDetail.findOne({ description });
-
         if (!existingDetail) {
             const newDetail = { description };
             const result = await BenefitDetail.insertMany([newDetail]);
@@ -99,34 +98,45 @@ router.post('/benefits', upload.single('file'), async (req, res) => {
         const sheetName = workbook.SheetNames[1];
         const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName]);
 
+        let firstBenefit = data[0]?.__EMPTY_1
         for (const row of data) {
             const planName = row.__EMPTY;
-            const benefitName = row.__EMPTY_1;
+            let benefitName = row.__EMPTY_1;
+            if (benefitName.trim() === '') {
+                benefitName = firstBenefit
+            } else {
+                firstBenefit = benefitName
+            }
             const benefitDetailDescription = row.__EMPTY_2;
-            console.log("Adding " + planName)
+            console.log("Adding benefits for: " + planName)
             try {
                 let existingPlan = await Plan.findOne({ name: planName });
                 if (!existingPlan) {
                     const newPlan = { name: planName, benefits: [], linePrices: [] };
                     const result = await Plan.insertMany([newPlan]);
-                    existingPlan = result[0];
+                    existingPlan = result[0]
                 }
+                const benefitPromises = existingPlan.benefits.map(benefitId =>
+                    Benefit.findById(benefitId).exec()
+                );
 
-                let existingBenefit = await Benefit.findOne({ name: benefitName });
-                if (!existingBenefit) {
+                const existingBenefits = await Promise.all(benefitPromises);
+                const benefit = existingBenefits.find(b => b.name === benefitName);
+                if (benefit) {
+                    await addBenefitDetail(benefit._id, benefitDetailDescription);
+                } else {
+                    let existingBenefit = null;
                     const newBenefit = { name: benefitName, benefitDetails: [] };
                     const result = await Benefit.insertMany([newBenefit]);
                     existingBenefit = result[0];
-                }
-
-                await addBenefitDetail(existingBenefit._id, benefitDetailDescription);
-
-                if (!existingPlan.benefits.some((b) => b._id.equals(existingBenefit._id))) {
+                    await addBenefitDetail(existingBenefit._id, benefitDetailDescription);
                     await Plan.updateOne(
                         { _id: existingPlan._id },
                         { $addToSet: { benefits: existingBenefit._id } }
                     );
                 }
+
+
             } catch (err) {
                 console.error('Error inserting data into MongoDB:', err);
                 return res.status(500).json({ error: 'Database error' });
@@ -164,5 +174,15 @@ router.get('/plans', async (req, res) => {
     }
 });
 
+router.delete('/plans', async (req, res) => {
+    try {
+        await Plan.deleteMany({})
+        await Benefit.deleteMany({})
+        await BenefitDetail.deleteMany({})
+        res.json({ message: "Plans deleted" });
+    } catch (err) {
+        res.status(500).json({ error: 'Server error: ' + err });
+    }
+});
 
 module.exports = router;
