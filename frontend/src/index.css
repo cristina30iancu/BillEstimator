@@ -36,6 +36,7 @@ input {
   word-wrap: break-word;
   margin: auto;
   font-size: 14px;
+  background-color: white !important;
 }
 
 input {
@@ -246,5 +247,13 @@ input {
 @media print {
   .exclude-from-print {
     display: none !important;
+  }
+  .second input , .second select {
+    outline: 0;
+    border-width: 0 0 2px;
+    border-color: gray;
+    border-radius: 0;
+    width: auto;
+    background-image: none !important;
   }
 }

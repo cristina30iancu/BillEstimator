@@ -145,7 +145,7 @@ export const Eestimator = () => {
                 </div>
                 <div className='form-group col-lg-2 mt-2 '>
                     <label className='control-label ' htmlFor="input4">Plan Monthly Cost</label>
-                    <input value={planCost} className='form-control w-25' type="number" id="input4" />
+                    <input value={planCost} disabled className='form-control w-25'  id="input4" />
                 </div>
                 <div className='form-group col-lg-2 mt-2 d-flex justify-content-center align-items-end exclude-from-print'>
                     <button className='refresh exclude-from-print'>
