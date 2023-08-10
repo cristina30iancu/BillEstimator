@@ -61,7 +61,7 @@ router.post('/plans', upload.single('file'), async (req, res) => {
             }
         }
 
-        res.json({ message: 'Data added successfully' });
+        res.status(200).json({ message: 'Data added successfully' });
     } catch (err) {
         console.error('Error processing the uploaded file:', err);
         res.status(500).json({ error: 'Server error' });

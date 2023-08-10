@@ -50,17 +50,15 @@ export const CarrierForm = () => {
         return (
             <div key={index} className="form-row px-2 d-flex justify-content-between align-items-center">
                 <div className="form-group col-md-3">
-                    <select
+                    <input
                         id={`select`}
-                        className="form-select exclude-from-print"
+                        className="form-control exclude-from-print"
                         name={`select`}
                         value={row[`select`] || ''}
                         required
                         onChange={(e) => handleInputChange(e, index)}
                     >
-                        <option>Select</option>
-                        <option>Select</option>
-                    </select>
+                    </input>
                 </div>
                 <div className="form-group col-md-1">
                     <select
