@@ -15,6 +15,8 @@ export const Eestimator = () => {
     const [loyalty, setLoyalty] = useState()
     const [line, setLine] = useState()
     const [planCost, setPlanCost] = useState(0)
+    const [autoPay, setAutoPay] = useState(0)
+    const [totalDiscount, setTotalDiscount] = useState(autoPay)
     const componentRef = useRef();
 
     const handlePrint = useReactToPrint({
@@ -72,6 +74,8 @@ export const Eestimator = () => {
             } else {
                 setPlanCost(combinedMRCNew)
             }
+            setAutoPay(autoPay)
+            setTotalDiscount(autoPay)
         }
     }
 
@@ -323,30 +327,23 @@ export const Eestimator = () => {
                     <p className="mt-3">Promotional Discounts</p>
                     <br />
                     <div className="row">
-                        <div className="col-md-5">
+                        <div className="col-md-4">
                             <div className="form-group">
-                                <label className="control-label" htmlFor="select4">
-                                    Select Discounts
+                                <label className="control-label mb-3" htmlFor="select4">
+                                    Discounts
                                 </label>
-                                <select id="select4" className="form-select">
-                                    {/* Options for the select */}
-                                </select>
-                                <div class="row d-flex justify-content-between">
-                                    <div class="col-md-6">
-                                        <p>Autopay Discount $5/line</p>
-                                    </div>
-                                    <div class="col-md-6 text-right exclude-from-print">
-                                        <FontAwesomeIcon className='mr-2' icon={faEdit} />
-                                        <FontAwesomeIcon icon={faTrashAlt} />
-                                    </div>
-                                </div>
+                                <p>Auto Pay Discount ($5/line)</p>   
+                                <p className='mt-2'>Employee Discount</p>                          
                             </div>
                         </div>
-                        <div className="col-md-2">
+                        <div className="col-md-3">
                             <div className="form-group">
-                                <label htmlFor="cost">Discount</label>
-                                <input type="text" className="form-control" id="inputField" />
-                                <p>1</p>
+                                <label className="control-label mb-2" htmlFor="cost">Discount</label>
+                                <input type="number" value={autoPay} readOnly className="form-control mb-1" id="inputField" />
+                                <input type='number' onChange={e=> {
+                                    if(!e.target.value) setTotalDiscount(autoPay)
+                                    else setTotalDiscount(parseFloat(autoPay)  + parseFloat(e.target.value))
+                                    }} className="form-control" id="inputField" />
                             </div>
                         </div>
                         <div className="col-md-2 exclude-from-print">
@@ -372,11 +369,11 @@ export const Eestimator = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="row" style={{ marginTop: '-30px', marginBottom: '-20px' }}>
+                    <div className="row">
                         <div className="col-md-4 offset-md-8">
                             <div className="form-group">
                                 <label htmlFor="inputField">Total Promotional Discounts</label>
-                                <input type="text" className="form-control" id="inputField" />
+                                <input readOnly value={totalDiscount} type="text" className="form-control" id="inputField" />
                             </div>
                         </div>
                     </div>
