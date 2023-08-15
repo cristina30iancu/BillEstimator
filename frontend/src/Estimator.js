@@ -5,26 +5,57 @@ import { ApprovedDevicesForm } from "./ApprovedDevicesForm";
 import { useReactToPrint } from "react-to-print";
 import CurrencyInput from 'react-currency-input-field';
 import { TradeInForm } from "./TradeInForm";
+import { PlanComparison } from "./PlanComparison";
+import { SERVER_URL } from './config';
 
 export const Eestimator = () => {
     const [plans, setPlans] = useState([]);
-    const [lines, setLines] = useState([])
     const [planObj, setPlanObj] = useState(undefined)
     const [plan, setPlan] = useState(undefined)
     const [loyalty, setLoyalty] = useState()
     const [line, setLine] = useState()
     const [planCost, setPlanCost] = useState(0)
-    const [empDiscount, setEmpDiscount] = useState(0)
     const [autoPay, setAutoPay] = useState(0)
     const [totalDiscount, setTotalDiscount] = useState(autoPay)
     const componentRef = useRef();
+    const [phone, setPhone] = useState('');
+    const [notes, setNotes] = useState("");
+    const notesTextareaRef = useRef(null);
+    const [employeeDiscount, setEmployeeDiscount] = useState(0)
+    const [totalDiscountApprovedDevices, setTotalDiscountApprovedDevices] = useState(0)
+    const [totalDiscountCarrierPlans, setTotalDiscountCarrierPlans] = useState(0)
+    const [overallDiscount, setOverallDiscount] = useState(0)
+    const [downPayment, setDownPayment] = useState(0)
+    const [activationFee, setActivationFee] = useState(0)
+    const [accesories, setAccesories] = useState(0)
+    const [taxes, setTaxes] = useState(0)
+    const [tradeIn, setTradeIn] = useState(0)
+    const [totalUpfront, setTotalUpfront] = useState(0)
+
+    useEffect(() => {
+        setOverallDiscount(totalDiscount + totalDiscountApprovedDevices + totalDiscountCarrierPlans)
+    }, [totalDiscount, totalDiscountApprovedDevices, totalDiscountCarrierPlans]);
+
+    useEffect(() => {
+        let totalUpfront = parseFloat(downPayment) + parseFloat(activationFee) * 35 + parseFloat(taxes) + parseFloat(tradeIn) + parseFloat(accesories);
+        setTotalUpfront(totalUpfront.toFixed(2));
+    }, [downPayment, activationFee, taxes, tradeIn, accesories]);
+    
+
+    useEffect(() => {
+        const textarea = notesTextareaRef.current;
+        if (textarea) {
+            textarea.style.height = "auto"; // Reset height to auto
+            textarea.style.height = `${textarea.scrollHeight}px`; // Set height based on scroll height
+        }
+    }, [notes]);
 
     const handlePrint = useReactToPrint({
         content: () => componentRef.current
     });
 
     const fetchPlans = async () => {
-        const res = await fetch("http://localhost:3030/api/plans");
+        const res = await fetch(SERVER_URL + "/api/plans");
         const data = await res.json();
         setPlans(data);
         setPlan(data[0]?._id)
@@ -96,6 +127,13 @@ export const Eestimator = () => {
         computeCost()
     }, [plan, line, loyalty]);
 
+    const handlePhoneInput = (e) => {
+        const newValue = e.target.value.replace(/[^0-9]/g, ''); // Remove non-digit characters
+        setPhone(newValue.substring(0, 10));
+    };
+    const handleCurrencyInputChange = (value, name, index) => {
+
+    };
     return (<>
         <div className="container-fluid p-5" ref={componentRef} style={{ margin: 0 }}>
             <div class="form-inline">
@@ -169,7 +207,7 @@ export const Eestimator = () => {
                     <div className="col-12 h-100 py-2 plan-cost">
                         <table className="table">
                             <tbody>
-                                <tr><td>Plan Monthly Cost</td><td>$120.00</td></tr>
+                                <tr><td>Plan Monthly Cost</td><td>${planCost}</td></tr>
                                 <tr><td>Estimated Cost of First Bill:</td><td className="final-price">$85.00</td></tr>
                                 <tr colspan="2" className="plan-info"><td>Please note that all discounts and promos take 1-2 bill cycles before
                                     they will reflect on your bill</td>
@@ -183,16 +221,16 @@ export const Eestimator = () => {
                         <div className="col-4 total-col d-flex justify-content-center align-items-center">
                             <div className="text-center">
                                 <p>Total Discount</p>
-                                <p className="discount">$25.00</p>
+                                <p className="discount">${overallDiscount}</p>
                             </div>
                         </div>
                         <div className="col-8">
                             <table className="table discount-col">
                                 <tbody>
-                                    <tr><td>Plan Monthly Cost</td><td className="discounts">$120.00</td></tr>
-                                    <tr><td>Estimated Cost of First Bill:</td><td className="discounts">$85.00</td></tr>
-                                    <tr><td>Plan Monthly Cost</td><td className="discounts">$120.00</td></tr>
-                                    <tr><td>Estimated Cost of First Bill:</td><td className="discounts">$85.00</td></tr>
+                                    <tr><td>Carrier Plans Discount</td><td className="discounts">${totalDiscountCarrierPlans}</td></tr>
+                                    <tr><td>Approved Devices Discount</td><td className="discounts">${totalDiscountApprovedDevices}</td></tr>
+                                    <tr><td>Autopay Discount</td><td className="discounts">${autoPay}</td></tr>
+                                    <tr><td>Employee Discount</td><td className="discounts">${employeeDiscount}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -215,7 +253,7 @@ export const Eestimator = () => {
                             <div className="col-10 mx-auto">
                                 <table className="table">
                                     <tbody className="w-50 mx-auto">
-                                        <tr><td>Days remaining in bill cycle</td><td>12 days</td></tr>
+                                        <tr><td>Days remaining in bill cycle</td><td><input type="number" style={{ width: '30px' }}></input> days</td></tr>
                                         <tr><td>Next Bill</td><td className="font-weight-bold">$85.00</td></tr>
                                     </tbody>
                                 </table>
@@ -230,27 +268,78 @@ export const Eestimator = () => {
                                 <tbody>
                                     <tr> <td className="proration">Upfront Cost</td></tr>
                                     <tr>  <td>Total Upfront Cost</td></tr>
-                                    <tr>  <td className="font-weight-bold">$25.00</td></tr>
+                                    <tr>  <td className="font-weight-bold">${totalUpfront}</td></tr>
                                 </tbody>
                             </table>
                         </div>
                         <div className="col-8 px-3">
                             <table className="table ml-1">
                                 <tbody>
-                                    <tr><td>Plan Monthly Cost</td><td className="discounts">$120.00</td></tr>
-                                    <tr><td>Estimated Cost of First Bill:</td><td className="discounts">$85.00</td></tr>
-                                    <tr><td>Plan Monthly Cost</td><td className="discounts">$120.00</td></tr>
-                                    <tr><td>Estimated Cost of First Bill:</td><td className="discounts">$85.00</td></tr>
+                                    <tr><td>Down Device payment cost</td><td className="discounts">${downPayment}</td></tr>
+                                    <tr>
+                                        <td>One time activation fee</td>
+                                        <td>${activationFee * 35}</td>
+                                        <td className="discounts"><CurrencyInput
+                                            className="form-control exclude-from-print"
+                                            value={activationFee}
+                                            required
+                                            onValueChange={(value, name) => {
+                                                let v = value ?? 0
+                                                setActivationFee(parseFloat(v))
+                                            }} placeholder="$0.00"
+                                            decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
+                                        /></td>
+                                    </tr>
+                                    <tr><td>Accessories</td>
+                                        <td>${accesories}</td>
+                                        <td className="discounts">
+                                            <CurrencyInput
+                                                className="form-control exclude-from-print"
+                                                value={accesories}
+                                                required
+                                                onValueChange={(value, name) => {
+                                                    let v = value ?? 0
+                                                    setAccesories(parseFloat(v))
+                                                }} placeholder="$0.00"
+                                                decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
+                                            /></td></tr>
+                                    <tr>
+                                        <td>Tax</td>
+                                        <td>${taxes}</td>
+                                        <td className="discounts"> <CurrencyInput
+                                            className="form-control exclude-from-print"
+                                            value={taxes}
+                                            required
+                                            onValueChange={(value, name) => {
+                                                let v = value ?? 0
+                                                setTaxes(parseFloat(v))
+                                            }} placeholder="$0.00"
+                                            decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
+                                        /></td>
+                                    </tr>
+                                    <tr><td>In-Stock Trade-In</td>
+                                        <td>${tradeIn}</td>
+                                        <td className="discounts">
+                                            <CurrencyInput
+                                                className="form-control exclude-from-print"
+                                                value={tradeIn}
+                                                required
+                                                onValueChange={(value, name) => {
+                                                    let v = value ?? 0
+                                                    setTradeIn(parseFloat(v))
+                                                }} placeholder="$0.00"
+                                                decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
+                                            /></td></tr>
                                 </tbody>
                             </table>
                         </div>
                     </div>
                 </div>
             </div>
-            <CarrierForm />
-            <ApprovedDevicesForm />
+            <CarrierForm setTotalDiscount={setTotalDiscountCarrierPlans} />
+            <ApprovedDevicesForm setDownPayment={setDownPayment} setTotalDiscount={setTotalDiscountApprovedDevices} />
             <div className="row mx-1" style={{ borderTop: "1px solid black" }}>
-               <TradeInForm/>
+                <TradeInForm />
 
                 <div className="col-md-6">
                     <p className="mt-3">Promotional Discounts</p>
@@ -279,7 +368,7 @@ export const Eestimator = () => {
                                     prefix="$" decimalSeparator="." groupSeparator=","
                                     onValueChange={value => {
                                         if (!value) setTotalDiscount(autoPay)
-                                        else setTotalDiscount(parseFloat(autoPay) + parseFloat(value))
+                                        else { setTotalDiscount(parseFloat(autoPay) + parseFloat(value)); setEmployeeDiscount(parseFloat(value)) }
                                     }}
                                 />
                                 <input readOnly value={`$${totalDiscount.toFixed(2)}`} type="text" className="form-control" id="inputField" />
@@ -288,62 +377,7 @@ export const Eestimator = () => {
                     </div>
                 </div>
             </div>
-            <div className="row mt-5" style={{ backgroundColor: "#E5E5E5" }}>
-                <p className="m-1 font-weight-bold">PLANS COMPARISON</p>
-            </div>
-            <div className="row mx-1">
-                <div className="col-md-6 border-end border-dark">
-                    <div className="row">
-                        <div className="col-md-6 border-end">
-                            <select id="select4" className="form-select mt-3">
-                                {/* Options for the select */}
-                            </select>
-                        </div>
-                        <div className="col-md-3 border-end">
-                            <p className="text-center mt-3">Old Plan</p>
-                            <input type="number" className="form-control" placeholder="$"></input>
-                        </div>
-                        <div className="col-md-3 border-end">
-                            <p className="text-center mt-3">New Plan</p>
-                            <input type="number" className="form-control" placeholder="$"></input>
-                        </div>
-                    </div>
-                </div>
-
-                <div className="col-md-6 exclude-from-print">
-                    <div className="row mt-2">
-                        <div className="col-md-2">
-                            Differences
-                        </div>
-                        <div className="col-md-2 offset-md-6">
-                            <div className="form-group">
-                                <button className="form-select my-submit h-100">Submit</button>
-                            </div>
-                        </div>
-                        <div className="col-md-2 ">
-                            <div className="form-group">
-                                <button className="btn add-btn h-100 w-100">
-                                    Add{" "}
-                                    <svg width="13" height="15" viewBox="0 0 13 15" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                        <path d="M6.78564 13.9712C3.40814 13.9712 0.660645 11.2237 0.660645 7.84619C0.660645 4.46869 3.40814 1.72119 6.78564 1.72119C10.1631 1.72119 12.9106 4.46869 12.9106 7.84619C12.9106 11.2237 10.1631 13.9712 6.78564 13.9712ZM6.78564 2.59619C3.88939 2.59619 1.53564 4.94994 1.53564 7.84619C1.53564 10.7424 3.88939 13.0962 6.78564 13.0962C9.68189 13.0962 12.0356 10.7424 12.0356 7.84619C12.0356 4.94994 9.68189 2.59619 6.78564 2.59619Z" fill="#5F5F5F" />
-                                        <path d="M6.78564 10.9087C6.54064 10.9087 6.34814 10.7162 6.34814 10.4712V5.22119C6.34814 4.97619 6.54064 4.78369 6.78564 4.78369C7.03064 4.78369 7.22314 4.97619 7.22314 5.22119V10.4712C7.22314 10.7162 7.03064 10.9087 6.78564 10.9087Z" fill="#5F5F5F" />
-                                        <path d="M9.41064 8.28369H4.16064C3.91564 8.28369 3.72314 8.09119 3.72314 7.84619C3.72314 7.60119 3.91564 7.40869 4.16064 7.40869H9.41064C9.65564 7.40869 9.84814 7.60119 9.84814 7.84619C9.84814 8.09119 9.65564 8.28369 9.41064 8.28369Z" fill="#5F5F5F" />
-                                    </svg>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                    <div className="row">
-                        <div className="col-md-4 offset-md-8">
-                            <div className="form-group">
-                                <label htmlFor="inputField">Total Plan Differences</label>
-                                <input type="text" className="form-control" id="inputField" />
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
+            <PlanComparison />
             <div className="row h-100 mt-5">
                 <p className="quote">DESCRIPTION OF PLANS & BENEFITS</p>
                 <div className="col-8 ">
@@ -361,11 +395,22 @@ export const Eestimator = () => {
                     <div className="col-12 h-100 py-2 details">
                         Store Phone Number
                         <p style={{ fontSize: "14px", color: "gray" }}>Call this number first if need help with your account</p>
-                        <input className="w-100 mb-2"></input>
+                        <input
+                            className={`w-100 mb-2`}
+                            title="Please enter exactly 10 digits"
+                            required
+                            pattern="[0-9]{10}"
+                            value={phone}
+                            max={10}
+                            min={10}
+                            size={10}
+                            onChange={handlePhoneInput}
+                        />
                         Manager Name
                         <input className="w-100 mb-2"></input>
                         <p style={{ color: "#E20074", fontWeight: "bold" }}>Notes</p>
-                        <input className="w-100 mb-2"></input>
+                        <textarea value={notes} onChange={e => setNotes(e.target.value)} class="form-control exclude-from-print" />
+                        <p style={{ textDecoration: 'underline' }}>{notes}</p>
                     </div>
                 </div>
             </div>

@@ -261,3 +261,45 @@ input {
     border: none;
   }
 }
+
+/* Invalid input */
+input:invalid:focus {
+  border: 1px solid red;
+  outline: none; /* Prevent double border in some browsers */
+}
+
+
+.autocomplete {
+  position: relative;
+}
+
+.autocomplete-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background-color: white;
+  border: 1px solid #ccc;
+  z-index: 100;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+  box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.autocomplete-list li {
+  padding: 10px;
+  cursor: pointer;
+}
+
+.autocomplete-list li:hover {
+  background-color: #f5f5f5;
+}
+/* Print styles */
+@media print {
+  .print-textarea {
+   height: auto !important;  
+    overflow: visible !important; /* Allow content to overflow */
+    /* Add any other print-specific styles you need */
+  }
+}

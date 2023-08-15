@@ -1,11 +1,16 @@
 # BillEstimator
 
 TO DO:
-- validation for number inputs
-- validation for required fields
-- editing 
-- deleting
-
-- repeating for each form!
-- print
-- connection to backend
+- better editing
+- design - blue
+- merge the monthly cost
+- refresh button to refresh
+- notes to expand
+- merge plan comparison
+- merge trade in
+- compute cost
+- check print
+- refactor
+- logo
+- dollar input
+- delete all data before import

@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
+import CurrencyInput from 'react-currency-input-field';
 
-
-export const CarrierForm = () => {
+export const CarrierForm = ({setTotalDiscount}) => {
     const [rows, setRows] = useState([{}]);
     const [editingIndex, setEditingIndex] = useState(-1);
+    const [total, setTotal] = useState()
 
     const handleDeleteRow = (index) => {
         const updatedRows = rows.filter((_, i) => i !== index);
@@ -14,11 +15,47 @@ export const CarrierForm = () => {
     };
 
     const handleInputChange = (e, index) => {
+        let cost = rows[index].cost ?? 0
+        let finalCost = rows[index].finalCost ?? 0
+        let discounts = rows[index].discounts ?? 0
         const { name, value } = e.target;
+        if (name === 'quantity') {
+            if (cost) {
+                finalCost = cost * value - discounts
+            }
+        }
         const updatedRows = [...rows];
         updatedRows[index] = {
             ...updatedRows[index],
-            [name]: value
+            [name]: value,
+            ['finalCost']: parseFloat(finalCost).toFixed(2)
+        };
+        setRows(updatedRows);
+    };
+
+    const handleCurrencyInputChange = (val, name, index) => {
+        let cost = rows[index].cost ?? 0
+        let finalCost = rows[index].finalCost ?? 0
+        let quantity = rows[index].quantity ?? 1
+        let discounts = rows[index].discounts ?? 0
+        if (name === 'discounts') {
+            if (cost && quantity) {
+                let value = val ?? 0
+                finalCost = (cost * quantity) - value
+            }
+        }
+        if (name === 'cost') {
+            if (quantity) {
+                let value = val ?? 0
+                finalCost = (quantity * value) - discounts
+            }
+        }
+        const updatedRows = [...rows];
+        updatedRows[index] = {
+            ...updatedRows[index],
+            [name]: val,
+            ['finalCost']: parseFloat(finalCost).toFixed(2),
+            ['quantity']: quantity
         };
         setRows(updatedRows);
     };
@@ -32,18 +69,16 @@ export const CarrierForm = () => {
     };
 
     const handleSubmit = () => {
-        const isFormValid = rows.every(row => (
-            row.select && row.quantity && row.cost && row.discounts && row.finalCost
-        ));
-        if (!isFormValid) {
-            alert('Please fill in all fields before submitting.');
-            return;
-        }
         for (let row of rows) {
-            row.submitted = true
+            if (row.select && row.quantity && row.cost && row.discounts && row.finalCost)
+                row.submitted = true
         }
         setEditingIndex(-1);
         setRows([...rows]);
+        const sumFinalCost = rows.reduce((total, row) => parseFloat(total) + (parseFloat(row.finalCost) || 0), 0);
+        setTotal(parseFloat(sumFinalCost).toFixed(2))
+        const sumFinalDisc = rows.reduce((total, row) => parseFloat(total) + (parseFloat(row.discounts) || 0), 0);
+        setTotalDiscount(parseFloat(sumFinalDisc).toFixed(2))
     };
 
     const renderRow = (row, index) => {
@@ -69,47 +104,41 @@ export const CarrierForm = () => {
                         required
                         onChange={(e) => handleInputChange(e, index)}
                     >
-                        <option>Select</option>
-                        <option>Select</option>
+                        {Array.from({ length: 10 }, (_, index) => (
+                            <option key={index + 1} value={index + 1}>
+                                {index + 1}
+                            </option>
+                        ))}
                     </select>
                 </div>
                 <div className="form-group col-md-1">
-                    <input
+                    <CurrencyInput
                         id={`cost`}
-                        className="form-control exclude-from-print"
+                        className="form-control"
                         name={`cost`}
                         value={row[`cost`] || ''}
-                        onChange={(e) => handleInputChange(e, index)}
-                        type='number'
                         required
-                    >
-                    </input>
+                        onValueChange={(value, name) => handleCurrencyInputChange(value, name, index)} placeholder="$0.00"
+                        decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
+                    />
                 </div>
                 <div className="form-group col-md-1">
-                    <input
+                    <CurrencyInput
                         id={`discounts`}
-                        className="form-control exclude-from-print"
+                        className="form-control"
                         name={`discounts`}
                         value={row[`discounts`] || ''}
-                        type='number'
                         required
-                        onChange={(e) => handleInputChange(e, index)}
-                    >
-                        {/* Options for discounts select */}
-                    </input>
+                        onValueChange={(value, name) => handleCurrencyInputChange(value, name, index)} placeholder="$0.00"
+                        decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
+                    />
                 </div>
                 <div className="form-group col-md-2">
-                    <input
-                        id={`finalCost`}
-                        className="form-control exclude-from-print"
-                        name={`finalCost`}
-                        value={row[`finalCost`] || ''}
-                        onChange={(e) => handleInputChange(e, index)}
-                        type='number'
-                        required
-                    >
-                        {/* Options for final cost select */}
-                    </input>
+                    <CurrencyInput
+                        id={`finalCost`} className="form-control"
+                        name={`finalCost`} value={row[`finalCost`] || ''} placeholder="$0.00"
+                        decimalsLimit={2} prefix="$" disabled decimalSeparator="." groupSeparator=","
+                    />
                 </div>
                 {index == 0 ? <>
                     <div class="form-group col-md-1">
@@ -151,13 +180,13 @@ export const CarrierForm = () => {
                     <p>{row[`quantity`]}</p>
                 </div>
                 <div className="form-group col-md-1">
-                    <p>{row[`cost`]}</p>
+                    <p>${row[`cost`]}</p>
                 </div>
                 <div className="form-group col-md-1">
-                    <p>{row[`discounts`]}</p>
+                    <p>${row[`discounts`]}</p>
                 </div>
                 <div className="form-group col-md-2">
-                    <p>{row[`finalCost`]}</p>
+                    <p>${row[`finalCost`]}</p>
                 </div>
                 {index == 0 ? <>
                     <div class="form-group col-md-1">
@@ -180,6 +209,7 @@ export const CarrierForm = () => {
             </div>
         )
     }
+
     return (
         <>
             <div className='row mx-1' style={{ borderTop: '1px solid black' }}>
@@ -213,8 +243,9 @@ export const CarrierForm = () => {
                 <div className="col-md-2 offset-md-9">
                     <div className="form-group">
                         <label htmlFor="inputField">Total Carrier Plan Cost</label>
-                        <input readOnly type="number" className="form-control" id="inputField" />
-                    </div>
+                        <CurrencyInput placeholder="$0.00" value={total} className='form-control'
+                            decimalsLimit={2} prefix="$" disabled decimalSeparator="." groupSeparator=","
+                        /> </div>
                 </div>
             </div>
         </>
