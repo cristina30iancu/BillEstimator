@@ -114,7 +114,7 @@ export const CarrierForm = ({setTotalDiscount}) => {
                 <div className="form-group col-md-1">
                     <CurrencyInput
                         id={`cost`}
-                        className="form-control"
+                        className="form-control  exclude-from-print"
                         name={`cost`}
                         value={row[`cost`] || ''}
                         required
@@ -125,7 +125,7 @@ export const CarrierForm = ({setTotalDiscount}) => {
                 <div className="form-group col-md-1">
                     <CurrencyInput
                         id={`discounts`}
-                        className="form-control"
+                        className="form-control  exclude-from-print"
                         name={`discounts`}
                         value={row[`discounts`] || ''}
                         required
@@ -135,7 +135,7 @@ export const CarrierForm = ({setTotalDiscount}) => {
                 </div>
                 <div className="form-group col-md-2">
                     <CurrencyInput
-                        id={`finalCost`} className="form-control"
+                        id={`finalCost`} className="form-control exclude-from-print"
                         name={`finalCost`} value={row[`finalCost`] || ''} placeholder="$0.00"
                         decimalsLimit={2} prefix="$" disabled decimalSeparator="." groupSeparator=","
                     />
