@@ -7,4 +7,3 @@ TO DO:
 - check print
 - refactor
 - logo
-- delete all data before import
