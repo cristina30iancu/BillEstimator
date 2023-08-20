@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import CurrencyInput from 'react-currency-input-field';
 
-export const ApprovedDevicesForm = ({setTotalDiscount, setDownPayment}) => {
+export const ApprovedDevicesForm = ({setTotalDiscount, setDownPayment, setTotalApprovedDevicesCost}) => {
     const [rows, setRows] = useState([{}]);
     const [total, setTotal] = useState()
     const [editingIndex, setEditingIndex] = useState(-1);
@@ -81,6 +81,7 @@ export const ApprovedDevicesForm = ({setTotalDiscount, setDownPayment}) => {
         setTotalDiscount(parseFloat(sumFinalDisc).toFixed(2))
         const sumDownPayment = rows.reduce((total, row) => parseFloat(total) + (parseFloat(row.downPayment) || 0), 0);
         setDownPayment(parseFloat(sumDownPayment).toFixed(2))
+        setTotalApprovedDevicesCost(parseFloat(sumFinalCost).toFixed(2))
     };
 
     const renderRow = (row, index) => {

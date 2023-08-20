@@ -185,7 +185,7 @@ export const TradeInForm = () => {
                 <div className="col-md-4">
                     <div className="form-group">
                         <label className="form-label mr-2" htmlFor="inputField">
-                            Total Devices Cost
+                            Total Trade-In Credit
                         </label>
                         <CurrencyInput placeholder="$0.00" value={total} className='form-control'
                             decimalsLimit={2} prefix="$" disabled decimalSeparator="." groupSeparator=","

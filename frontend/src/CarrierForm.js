@@ -4,7 +4,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
 import CurrencyInput from 'react-currency-input-field';
 
-export const CarrierForm = ({setTotalDiscount}) => {
+export const CarrierForm = ({setTotalDiscount, setTotalPlanCost}) => {
     const [rows, setRows] = useState([{}]);
     const [editingIndex, setEditingIndex] = useState(-1);
     const [total, setTotal] = useState()
@@ -79,6 +79,7 @@ export const CarrierForm = ({setTotalDiscount}) => {
         setTotal(parseFloat(sumFinalCost).toFixed(2))
         const sumFinalDisc = rows.reduce((total, row) => parseFloat(total) + (parseFloat(row.discounts) || 0), 0);
         setTotalDiscount(parseFloat(sumFinalDisc).toFixed(2))
+        setTotalPlanCost(parseFloat(sumFinalCost).toFixed(2))
     };
 
     const renderRow = (row, index) => {

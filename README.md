@@ -7,3 +7,4 @@ TO DO:
 - check print
 - refactor
 - logo
+- discount def 0
