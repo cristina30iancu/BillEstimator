@@ -19,6 +19,8 @@ const planSchema = new Schema({
       line: { type: Number, required: false },
       freeLinePromotion: { type: String, enum: ['Y', 'N'], required: false },
       combinedMRCExisting: { type: Number, required: false },
+      combinedMRCNew: { type: Number, required: false },
+      MRC: { type: Number, required: false },
     },
   ],
   benefits: [{ type: Schema.Types.ObjectId, ref: 'Benefit', required: false }]

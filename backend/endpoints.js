@@ -16,10 +16,11 @@ router.post('/plans', upload.single('file'), async (req, res) => {
         const data = xlsx.utils.sheet_to_json(workbook.Sheets[sheetName], { defval: '' });
 
         for (const row of data) {
-            const { Plan: planName, Line } = row;
+            const { Plan: planName, Line, MRC } = row;
             console.log("Adding " + planName)
             const freeLinePromotionValue = row['Free Line Promotion [Y/N]'];
             const combinedMRCExistingValue = row['Combined MRC [Existing]'];
+            const combinedMRCNewValue = row['Combined MRC [New]']
             try {
                 let existingPlan = await Plan.findOne({ name: planName });
                 if (!existingPlan) {
@@ -40,6 +41,8 @@ router.post('/plans', upload.single('file'), async (req, res) => {
                         line: Line,
                         freeLinePromotion: freeLinePromotionValue,
                         combinedMRCExisting: combinedMRCExistingValue,
+                        combinedMRCNew: combinedMRCNewValue,
+                        MRC: MRC
                     };
 
                     // Add the new linePrice entry to the linePrices array

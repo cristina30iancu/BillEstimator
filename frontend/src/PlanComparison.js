@@ -1,82 +1,77 @@
-import { useEffect, useState } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEdit, faTrashAlt } from '@fortawesome/free-solid-svg-icons';
-import CurrencyInput from 'react-currency-input-field';
+import { useEffect, useState } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faEdit } from "@fortawesome/free-solid-svg-icons";
+import CurrencyInput from "react-currency-input-field";
 
 export const PlanComparison = ({ setPlanComparisons, costs }) => {
   const [total, setTotal] = useState();
-  const [rows, setRows] = useState([{}]);
+  const [rows, setRows] = useState([]);
   const [editingIndex, setEditingIndex] = useState(-1);
 
   const planComparisonData = [
-    'Monthly Plan Lines',
-    'Monthly Carrier Plans',
-    'Monthly Device',
-    'Total Mobile Protection/Features',
-    'Accessories',
-    'Monthly Credits',
-    'Trade-in Credits',
+    "Monthly Plan Lines",
+    "Monthly Carrier Plans",
+    "Monthly Device",
+    "Total Mobile Protection/Features",
+    "Accessories",
+    "Monthly Credits",
+    "Trade-in Credits",
   ];
 
   useEffect(() => {
-    const planRows = []; let i = 0;
+    const planRows = [];
+    let i = 0;
     for (let comparison of planComparisonData) {
-      let obj = { comparison, newPlan: parseFloat(costs[i]) };
+      let obj = { comparison, newPlan: parseFloat(costs[i]), submitted: false, oldPlan: 0, differences: -parseFloat(costs[i]).toFixed(2) };
       planRows.push(obj);
       i++;
     }
     setRows(planRows);
-    console.log(planRows )
-  }, costs);
+    const sumFinalCost = planRows.reduce(
+      (total, row) => parseFloat(total) + (parseFloat(row.differences) || 0),
+      0
+    );
+    setTotal(parseFloat(sumFinalCost).toFixed(2));
+    setPlanComparisons(planRows)
+  }, []);
 
-  const handleDeleteRow = index => {
-    const updatedRows = rows.filter((_, i) => i !== index);
-    setRows(updatedRows);
-  };
-
-  const handleInputChange = (e, index) => {
-    let cost = rows[index].cost ?? 0;
-    let finalCost = rows[index].finalCost ?? 0;
-    let discounts = rows[index].discounts ?? 0;
-    const { name, value } = e.target;
-    if (name === 'quantity') {
-      if (cost) {
-        finalCost = cost * value - discounts;
-      }
+  useEffect(() => {
+    console.log('again')
+    if (rows.length > 0) {
+      const updatedRows = rows.map((row, i) => ({
+        ...row,
+        newPlan: (i == 3 || i == 4) ? row.newPlan : parseFloat(costs[i]),
+        oldPlan: row.oldPlan,
+        differences: ((row.oldPlan ?? 0) - parseFloat(costs[i]).toFixed(2))
+      }));
+      console.log(updatedRows)
+      setRows(updatedRows);
+      setPlanComparisons(updatedRows)
+      const sumFinalCost = updatedRows.reduce((total, row) => parseFloat(total) + (parseFloat(row.differences) || 0), 0);
+      setTotal(parseFloat(sumFinalCost).toFixed(2));
     }
-    const updatedRows = [...rows];
-    updatedRows[index] = {
-      ...updatedRows[index],
-      [name]: value,
-      ['finalCost']: parseFloat(finalCost).toFixed(2),
-    };
-    setRows(updatedRows);
-  };
+  }, [costs]);
 
   const handleCurrencyInputChange = (val, name, index) => {
     let oldPlan = rows[index].oldPlan ?? 0;
     let newPlan = rows[index].newPlan ?? 0;
     let comparison = rows[index].comparison ?? planComparisonData[0];
     let diff = 0;
-
-    if (name === 'oldPlan') {
+    if (name === "oldPlan") {
       diff = val - newPlan;
-    } else if (name === 'newPlan') {
+    } else if (name === "newPlan") {
       diff = oldPlan - val;
     }
     const updatedRows = [...rows];
     updatedRows[index] = {
       ...updatedRows[index],
-      [name]: val,
-      ['differences']: diff,
-      ['comparison']: comparison,
+      [name]: parseFloat(val),
+      ["differences"]: parseFloat(diff).toFixed(2),
+      ["comparison"]: comparison,
     };
     setRows(updatedRows);
-  };
-
-  const handleAddRow = () => {
-    setRows([...rows, {}]);
+    setPlanComparisons(updatedRows)
   };
 
   const handleEditRow = index => {
@@ -85,16 +80,14 @@ export const PlanComparison = ({ setPlanComparisons, costs }) => {
 
   const handleSubmit = () => {
     for (let row of rows) {
-      if (row.comparison && row.oldPlan && row.newPlan) {
+      if (row.oldPlan && row.newPlan) {
         row.submitted = true;
       }
     }
     setEditingIndex(-1);
     setRows([...rows]);
     const sumFinalCost = rows.reduce(
-      (total, row) => parseFloat(total) + (parseFloat(row.differences) || 0),
-      0
-    );
+      (total, row) => parseFloat(total) + (parseFloat(row.differences) || 0), 0);
     setTotal(parseFloat(sumFinalCost).toFixed(2));
     setPlanComparisons(rows);
   };
@@ -105,14 +98,14 @@ export const PlanComparison = ({ setPlanComparisons, costs }) => {
         <div className="col-md-6 border-end border-dark">
           <div className="row mb-3">
             <div className="col-md-6 border-end">
-              <p>{row[`comparison`] || ''} </p>
+              <p>{row[`comparison`] || ""} </p>
             </div>
             <div className="col-md-3 border-end">
               <CurrencyInput
                 placeholder="$0.00"
-                className="form-control"
+                className="form-control requiredInput"
                 name="oldPlan"
-                value={row['oldPlan'] || ''}
+                value={row["oldPlan"] || ""}
                 onValueChange={(value, name) =>
                   handleCurrencyInputChange(value, name, index)
                 }
@@ -123,20 +116,21 @@ export const PlanComparison = ({ setPlanComparisons, costs }) => {
               />
             </div>
             <div className="col-md-3 border-end">
-              {row['comparison'] !== 'Total Mobile Protection/Features' &&
-              row['comparison'] !== 'Accessories' ? (
-                <p className='ml-1'>${row['newPlan'] || '0.00'}</p>
+              {row["comparison"] !== "Total Mobile Protection/Features" &&
+                row["comparison"] !== "Accessories" ? (
+                <p className="ml-1">${row["newPlan"] || "0.00"}</p>
               ) : (
                 <CurrencyInput
                   placeholder="$0.00"
-                  className="form-control mr-2"
+                  className={"" + (row["comparison"] !== "Total Mobile Protection/Features" &&
+                    row["comparison"] !== "Accessories") ? "form-control mr-2 requiredInput" : ""}
                   name="newPlan"
-                  value={row['newPlan'] || ''}
+                  value={row["newPlan"] || ""}
                   decimalsLimit={2}
                   prefix="$"
                   disabled={
-                    row['comparison'] !== 'Total Mobile Protection/Features' &&
-                    row['comparison'] !== 'Accessories'
+                    row["comparison"] !== "Total Mobile Protection/Features" &&
+                    row["comparison"] !== "Accessories"
                   }
                   decimalSeparator="."
                   groupSeparator=","
@@ -152,7 +146,7 @@ export const PlanComparison = ({ setPlanComparisons, costs }) => {
         <div className="col-md-6">
           <div className="row mb-3">
             <div className="col-md-2">
-            <p className='ml-1'>${row['differences'] || '0.00'}</p>
+              <p className="ml-1">${row["differences"] || "0.00"}</p>
             </div>
           </div>
         </div>
@@ -165,17 +159,12 @@ export const PlanComparison = ({ setPlanComparisons, costs }) => {
       <div key={index} className="row mx-1">
         <div className="col-md-6 border-end border-dark">
           <div className="row">
-            <div className="col-md-6 border-end">
+            <div className="col-md-6 border-end ">
               <span>{row[`comparison`]}</span>
               <FontAwesomeIcon
-                className="ml-5"
+                className="ml-5 exclude-from-print"
                 onClick={() => handleEditRow(index)}
                 icon={faEdit}
-              />
-              <FontAwesomeIcon
-                className="ml-2"
-                icon={faTrashAlt}
-                onClick={() => handleDeleteRow(index)}
               />
             </div>
             <div className="col-md-3 border-end">
@@ -195,11 +184,11 @@ export const PlanComparison = ({ setPlanComparisons, costs }) => {
         </div>
       </div>
     );
-  }; 
+  };
 
   return (
     <>
-      <div className="row mt-5" style={{ backgroundColor: '#E5E5E5' }}>
+      <div className="row mt-5" style={{ backgroundColor: "#E5E5E5" }}>
         <p className="m-1 font-weight-bold">PLANS COMPARISON</p>
       </div>
       <div className="row mx-1">
@@ -229,36 +218,6 @@ export const PlanComparison = ({ setPlanComparisons, costs }) => {
                   onClick={handleSubmit}
                 >
                   Submit
-                </button>
-              </div>
-            </div>
-            <div className="col-md-2 exclude-from-print mt-3">
-              <div className="form-group">
-                <button
-                  className="btn add-btn h-100 w-100"
-                  onClick={handleAddRow}
-                >
-                  Add{' '}
-                  <svg
-                    width="13"
-                    height="15"
-                    viewBox="0 0 13 15"
-                    fill="none"
-                    xmlns="http://www.w3.org/2000/svg"
-                  >
-                    <path
-                      d="M6.78564 13.9712C3.40814 13.9712 0.660645 11.2237 0.660645 7.84619C0.660645 4.46869 3.40814 1.72119 6.78564 1.72119C10.1631 1.72119 12.9106 4.46869 12.9106 7.84619C12.9106 11.2237 10.1631 13.9712 6.78564 13.9712ZM6.78564 2.59619C3.88939 2.59619 1.53564 4.94994 1.53564 7.84619C1.53564 10.7424 3.88939 13.0962 6.78564 13.0962C9.68189 13.0962 12.0356 10.7424 12.0356 7.84619C12.0356 4.94994 9.68189 2.59619 6.78564 2.59619Z"
-                      fill="#5F5F5F"
-                    />
-                    <path
-                      d="M6.78564 10.9087C6.54064 10.9087 6.34814 10.7162 6.34814 10.4712V5.22119C6.34814 4.97619 6.54064 4.78369 6.78564 4.78369C7.03064 4.78369 7.22314 4.97619 7.22314 5.22119V10.4712C7.22314 10.7162 7.03064 10.9087 6.78564 10.9087Z"
-                      fill="#5F5F5F"
-                    />
-                    <path
-                      d="M9.41064 8.28369H4.16064C3.91564 8.28369 3.72314 8.09119 3.72314 7.84619C3.72314 7.60119 3.91564 7.40869 4.16064 7.40869H9.41064C9.65564 7.40869 9.84814 7.60119 9.84814 7.84619C9.84814 8.09119 9.65564 8.28369 9.41064 8.28369Z"
-                      fill="#5F5F5F"
-                    />
-                  </svg>
                 </button>
               </div>
             </div>

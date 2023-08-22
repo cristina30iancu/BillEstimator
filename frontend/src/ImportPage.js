@@ -1,36 +1,36 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { Modal, Button } from 'react-bootstrap';
-import { SERVER_URL } from './config';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { Modal, Button } from "react-bootstrap";
+import { SERVER_URL } from "./config";
 
 function ImportPage() {
     const [passwordVerified, setPasswordVerified] = useState(true); // Assuming verified for the sake of example
     const [showModal, setShowModal] = useState(false);
     const [file, setFile] = useState(null);
-    const [message, setMessage] = useState('')
+    const [message, setMessage] = useState("")
     const [isLoading, setLoading] = useState(false);
 
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
-        if (selectedFile && selectedFile.name.endsWith('.xlsm')) {
+        if (selectedFile && selectedFile.name.endsWith(".xlsm")) {
             setFile(selectedFile);
         } else {
-            alert('Please choose a valid .xlsm file.');
+            alert("Please choose a valid .xlsm file.");
         }
     };
 
     const handleDelete = async () => {
         try {
             setLoading(true);
-            const responseDelete = await fetch(SERVER_URL + '/api/plans/', {
-                method: 'DELETE'
+            const responseDelete = await fetch(SERVER_URL + "/api/plans/", {
+                method: "DELETE"
             });
             const dataDelete = await responseDelete.json();
             if (responseDelete.ok) setMessage(dataDelete.message)
             else setMessage(dataDelete.error)
         } catch (error) {
-            console.error('Erorr: ' + error)
+            console.error("Erorr: " + error)
         } finally {
             setLoading(false);
         }
@@ -38,18 +38,18 @@ function ImportPage() {
     const handleAddPlans = async () => {
         try {
             const fd = new FormData();
-            fd.append('file', file, file.name);
+            fd.append("file", file, file.name);
             setLoading(true);
 
-            const response = await fetch(SERVER_URL + '/api/plans/', {
-                method: 'POST',
+            const response = await fetch(SERVER_URL + "/api/plans/", {
+                method: "POST",
                 body: fd,
             });
             const data = await response.json();
             if (response.ok) setMessage(data.message)
             else setMessage(data.error)
         } catch (error) {
-            console.error('Erorr: ' + error)
+            console.error("Erorr: " + error)
         } finally {
             setLoading(false);
         }
@@ -57,10 +57,10 @@ function ImportPage() {
     const handleAddBenefits = async () => {
         try {
             const fd = new FormData();
-            fd.append('file', file, file.name);
+            fd.append("file", file, file.name);
             setLoading(true);
-            const response2 = await fetch(SERVER_URL + '/api/benefits/', {
-                method: 'POST',
+            const response2 = await fetch(SERVER_URL + "/api/benefits/", {
+                method: "POST",
                 body: fd,
             });
             const data2 = await response2.json();
@@ -68,7 +68,7 @@ function ImportPage() {
             else setMessage(data2.error)
 
         } catch (error) {
-            console.error('Erorr: ' + error)
+            console.error("Erorr: " + error)
         } finally {
             setLoading(false);
         }
@@ -107,18 +107,18 @@ function ImportPage() {
                         <p>Loading...</p>
                     </div>
                 ) : (
-                    <div className='mb-3'>{message}</div>
+                    <div className="mb-3">{message}</div>
                 )}
                 <div className="form-row px-2 d-flex justify-content-center align-items-center">
                     <div className="form-group d-flex justify-content-center align-items-center">
                         <label className="form-label mr-2" htmlFor="inputField">
                             Import excel file
                         </label>
-                        <input onChange={handleFileChange} type="file" accept='.xlsm' className="form-control mr-2" />
-                        <button disabled={!file} className='btn btn-primary mr-2' onClick={handleSubmit}>
+                        <input onChange={handleFileChange} type="file" accept=".xlsm" className="form-control mr-2" />
+                        <button disabled={!file} className="btn btn-primary mr-2" onClick={handleSubmit}>
                             Submit
                         </button>
-                        <button className='btn btn-danger' onClick={handleDeleteButtonClick}>
+                        <button className="btn btn-danger" onClick={handleDeleteButtonClick}>
                             Delete all data
                         </button>
                     </div>

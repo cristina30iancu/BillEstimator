@@ -1,14 +1,14 @@
-import { useEffect, useState, useRef } from 'react';
-import 'bootstrap/dist/css/bootstrap.min.css';
-import { CarrierForm } from './CarrierForm';
-import { ApprovedDevicesForm } from './ApprovedDevicesForm';
-import { useReactToPrint } from 'react-to-print';
-import CurrencyInput from 'react-currency-input-field';
-import { TradeInForm } from './TradeInForm';
-import { PlanComparison } from './PlanComparison';
-import { SERVER_URL } from './config';
+import { useEffect, useState, useRef } from "react";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { CarrierForm } from "./CarrierForm";
+import { ApprovedDevicesForm } from "./ApprovedDevicesForm";
+import { useReactToPrint } from "react-to-print";
+import CurrencyInput from "react-currency-input-field";
+import { TradeInForm } from "./TradeInForm";
+import { PlanComparison } from "./PlanComparison";
+import { SERVER_URL } from "./config";
 
-export const Eestimator = () => {
+export const Estimator = () => {
     const [plans, setPlans] = useState([]);
     const [planObj, setPlanObj] = useState(undefined);
     const [plan, setPlan] = useState(undefined);
@@ -16,10 +16,10 @@ export const Eestimator = () => {
     const [line, setLine] = useState();
     const [planCost, setPlanCost] = useState(0);
     const [autoPay, setAutoPay] = useState(0);
-    const [totalDiscount, setTotalDiscount] = useState(autoPay);
+    const [totalDiscount, setTotalDiscount] = useState(0);
     const componentRef = useRef();
-    const [phone, setPhone] = useState('');
-    const [notes, setNotes] = useState('');
+    const [phone, setPhone] = useState("");
+    const [notes, setNotes] = useState("");
     const notesTextareaRef = useRef(null);
     const [employeeDiscount, setEmployeeDiscount] = useState(0);
     const [totalDiscountApprovedDevices, setTotalDiscountApprovedDevices] =
@@ -38,13 +38,14 @@ export const Eestimator = () => {
     const [days, setDays] = useState(0);
     const [totalApprovedDevicesCost, setTotalApprovedDevicesCost] = useState(0)
     const [totalTradeIn, setTotalTradeIn] = useState(0)
-    const [costs, setCosts] = useState()
-    //planCost, totalPlanCost,totalApprovedDevicesCost, -overallDiscount, totalTradeIn
+    const [costs, setCosts] = useState(null)
+    const [estimatedCost, setEstimatedCost] = useState(0)
+
     useEffect(() => {
         setOverallDiscount(
             totalDiscount + totalDiscountApprovedDevices + totalDiscountCarrierPlans
         );
-    }, [totalDiscount, totalDiscountApprovedDevices, totalDiscountCarrierPlans]);
+    }, [employeeDiscount, totalDiscount, totalDiscountApprovedDevices, totalDiscountCarrierPlans]);
 
     useEffect(() => {
         let totalUpfront =
@@ -59,110 +60,10 @@ export const Eestimator = () => {
     useEffect(() => {
         const textarea = notesTextareaRef.current;
         if (textarea) {
-            textarea.style.height = 'auto';
+            textarea.style.height = "auto";
             textarea.style.height = `${textarea.scrollHeight}px`;
         }
     }, [notes]);
-
-    const handlePrint = useReactToPrint({
-        content: () => componentRef.current,
-    });
-
-    const fetchPlans = async () => {
-        const res = await fetch(SERVER_URL + '/api/plans');
-        const data = await res.json();
-        setPlans(data);
-        setPlan(data[0]?._id);
-        setPlanObj(data[0]);
-        setLine(data[0].linePrices[0]?.line);
-    };
-
-    const computeCost = () => {
-        if (plan && line) {
-            const selectedPlan = plans.find((p, idx) => p._id == plan);
-            const selectedLine = selectedPlan?.linePrices.find(
-                (l, i) => l.line == line
-            );
-
-            if (selectedPlan.name == '$20 Talk & Text') {
-                setPlanCost(line * 20);
-                return;
-            }
-
-            let previousLineMRC = 0;
-            if (line > 1) {
-                previousLineMRC = selectedPlan?.linePrices.find(
-                    (l, i) => l.line == line - 1
-                ).combinedMRCExisting;
-            }
-
-            let combinedMRCNew = selectedLine?.combinedMRCExisting;
-            let combinedMRCNewWithAutoPay = selectedLine?.combinedMRCExisting - 5;
-
-            if (line > 1 && selectedLine.freeLinePromotion == 'N') {
-                let MRC = selectedLine?.combinedMRCExisting - previousLineMRC;
-                combinedMRCNew = previousLineMRC + MRC;
-                const calculatedValue =
-                    calculateHi(selectedLine?.combinedMRCExisting - 5, line, MRC) -
-                    5 * (line - 1);
-                console.log('c: ', calculatedValue);
-                combinedMRCNewWithAutoPay = calculatedValue;
-                console.log(
-                    'MRC ',
-                    MRC,
-                    ' combinedMRCNew ',
-                    combinedMRCNew,
-                    ' H ',
-                    calculatedValue,
-                    ' combinedMRCNewWithAutoPay: ',
-                    combinedMRCNewWithAutoPay
-                );
-            } else if (line > 1 && selectedLine.freeLinePromotion == 'Y') {
-                let MRC = selectedLine?.combinedMRCExisting - previousLineMRC;
-                combinedMRCNew = previousLineMRC;
-                combinedMRCNewWithAutoPay =
-                    calculateHi(selectedLine?.combinedMRCExisting - 5, line, MRC) -
-                    5 * (line - 1);
-                console.log(
-                    'MRC ',
-                    MRC,
-                    ' combinedMRCNew ',
-                    combinedMRCNew,
-                    ' H ',
-                    combinedMRCNewWithAutoPay,
-                    ' combinedMRCNewWithAutoPay: ',
-                    combinedMRCNewWithAutoPay
-                );
-            }
-
-            let autoPay = combinedMRCNew - combinedMRCNewWithAutoPay;
-            console.log('autopay ', autoPay);
-            if (loyalty === 'Insider') {
-                let cost = (combinedMRCNew - autoPay) * 0.8 + autoPay;
-                setPlanCost(cost);
-            } else if (loyalty === 'Existing') {
-                setPlanCost(selectedLine?.combinedMRCExisting);
-            } else {
-                setPlanCost(combinedMRCNew);
-            }
-            setAutoPay(autoPay);
-            setTotalDiscount(autoPay);
-        }
-    };
-
-    function calculateHi(startingValue, i, Di) {
-        if (i === 1) {
-            return startingValue;
-        } else {
-            const previousHi = calculateHi(startingValue, i - 1, Di);
-            return previousHi;
-        }
-    }
-
-    useEffect(() => {
-        setCosts([planCost, totalPlanCost, totalApprovedDevicesCost, 0, 0, 0 - parseFloat(overallDiscount), totalTradeIn])
-        console.log(costs)
-    }, [planCost, totalPlanCost, totalApprovedDevicesCost, overallDiscount, totalTradeIn])
 
     useEffect(() => {
         fetchPlans();
@@ -170,41 +71,124 @@ export const Eestimator = () => {
 
     useEffect(() => {
         computeNextBill();
-    }, [loyalty, planComparisons, totalPlanCost, costs]);
+    }, [loyalty, planComparisons, totalPlanCost, costs, days]);
+
+    useEffect(() => {
+        updateEstimatedCost()
+    }, [planComparisons]);
 
     useEffect(() => {
         computeCost();
     }, [plan, line, loyalty]);
 
+    useEffect(() => {
+        console.log('updating disc ', totalDiscount)
+         setCosts([planCost, totalPlanCost, totalApprovedDevicesCost, 0, 0, - parseFloat(totalDiscount), totalTradeIn])
+    }, [planCost, totalPlanCost, totalApprovedDevicesCost, totalTradeIn, totalDiscount, autoPay, employeeDiscount])
+
+
+    const handlePrint = useReactToPrint({
+        content: () => componentRef.current,
+    });
+
+    const fetchPlans = async () => {
+        const res = await fetch(SERVER_URL + "/api/plans");
+        const data = await res.json();
+        setPlans(data);
+        setPlan(data[0]?.name);
+        setPlanObj(data[0]);
+        setLine(data[0].linePrices[0]?.line);
+    };
+
+    const computeCost = () => {
+        if (plan && line) {
+            console.log(plan)
+            const selectedPlan = plans.find((p, idx) => p.name == plan);
+            const firstPlan = plans.find((p, idx) => p.name == selectedPlan.name);
+            const firstMRC = firstPlan?.linePrices.find((l, i) => l.line == 1).MRC;
+            const selectedLine = selectedPlan?.linePrices.find((l, i) => l.line == line);
+
+            if (selectedPlan.name == "$20 Talk & Text") {
+                setPlanCost(line * 20);
+                setAutoPay(0)
+                console.log(employeeDiscount, totalDiscount)
+                setTotalDiscount(employeeDiscount)
+            } else {
+                const promotions = selectedPlan?.linePrices.map((p, i) => p.freeLinePromotion)
+                const MRCs = selectedPlan?.linePrices.map((p, i) => p.MRC)
+    
+                let previousLineMRC = 0;
+                if (line > 1) {
+                    previousLineMRC = selectedPlan?.linePrices.find(
+                        (l, i) => l.line == line - 1
+                    ).MRC;
+                }
+    
+                let combinedMRCNew = selectedLine?.combinedMRCNew;
+                let combinedMRCNewWithAutoPay = selectedLine?.MRC - 5;
+    
+                if (line > 1) {
+                    combinedMRCNewWithAutoPay = calculateHi(promotions, firstMRC - 5, line, MRCs)
+                }
+    
+                let autoPay = combinedMRCNew - combinedMRCNewWithAutoPay;
+    
+                if (loyalty === "Insider") {
+                    let cost = (combinedMRCNew - autoPay) * 0.8 + autoPay;
+                    setPlanCost(cost);
+                } else if (loyalty === "Existing") {
+                    autoPay = 5 * line
+                    setPlanCost(selectedLine?.combinedMRCExisting);
+                } else {
+                    setPlanCost(combinedMRCNew);
+                }
+                setAutoPay(autoPay);
+                let d = parseFloat(autoPay) + parseFloat(employeeDiscount)
+                setTotalDiscount(d);
+            }            
+        }
+    };
+
+    function calculateHi(promotions, startingValue, i, D) {
+        if (i === 1) {
+            return startingValue;
+        } else {
+            const previousHi = calculateHi(promotions, startingValue, parseInt(i) - 1, D);
+            if (promotions[i - 1] == "N") {
+                return previousHi + D[i - 1] - 5
+            }
+            return previousHi
+        }
+    }
+
     const handlePhoneInput = e => {
-        const newValue = e.target.value.replace(/[^0-9]/g, '');
+        const newValue = e.target.value.replace(/[^0-9]/g, "");
         setPhone(newValue.substring(0, 10));
     };
 
     const computeNextBill = () => {
-        console.log(planComparisons)
-        if (loyalty == 'Existing') {
+        if (loyalty == "Existing") {
             let monthlyPlanLines =
                 planComparisons.find(
-                    (plan, i) => plan.comparison == 'Monthly Plan Lines'
+                    (plan, i) => plan.comparison == "Monthly Plan Lines"
                 )?.newPlan ?? 0;
             let proration = ((parseFloat(totalPlanCost) + parseFloat(monthlyPlanLines)) / 30) * parseFloat(days);
             let otherNewComparisons = planComparisons
-                .filter((p, i) => p.comparison != 'Monthly Plan Lines')
-                .reduce(
-                    (total, row) => parseFloat(total) + (parseFloat(row.newPlan) || 0),
-                    0
-                );
+                .filter((p, i) => p.comparison != "Monthly Plan Lines")
+                .reduce((total, row) => parseFloat(total) + (parseFloat(row.newPlan) || 0), 0);
             let monthlyPlanLinesOld =
                 planComparisons.find(
-                    (plan, i) => plan.comparison == 'Monthly Plan Lines'
+                    (plan, i) => plan.comparison == "Monthly Plan Lines"
                 )?.oldPlan ?? 0;
             let cost = parseFloat(proration) + parseFloat(monthlyPlanLinesOld) + parseFloat(otherNewComparisons);
-            setNextBill(parseFloat(cost));
-            // (total device plan costs + monthly plan Lines new) / 30 * days remaining
-            // + mpl old (input) +celelalte comparison
-        }
+            setNextBill(parseFloat(cost).toFixed(2));
+        } else setNextBill(0)
     };
+
+    const updateEstimatedCost = () => {
+        let newPlan = planComparisons.reduce((total, row) => parseFloat(total) + (parseFloat(row.newPlan) || 0), 0);
+        setEstimatedCost(parseFloat(newPlan).toFixed(2))
+    }
 
     return (
         <>
@@ -213,20 +197,20 @@ export const Eestimator = () => {
                 ref={componentRef}
                 style={{ margin: 0 }}
             >
-                <div class="form-inline">
-                    <div class="form-group mb-2">
+                <div className="form-inline">
+                    <div className="form-group mb-2">
                         <label className="quote mt-3 mr-3">CUSTOMER QUOTE</label>
                     </div>
-                    <div class="form-group mb-2">
+                    <div className="form-group mb-2">
                         <label className="control-label mr-3" htmlFor="input1">
                             Customer Name
                         </label>
-                        <input type="text" id="input1" />
+                        <input type="text" className="requiredInput"/>
                     </div>
-                    <div class="form-group mx-sm-3 mb-2">
+                    <div className="form-group mx-sm-3 mb-2">
                         <label className="control-label mr-3">Customer Loyalty</label>
                         <select
-                            className="loyalty"
+                            className="loyalty requiredInput"
                             onChange={e => setLoyalty(e.target.value)}
                         >
                             <option value="New">New</option>
@@ -234,15 +218,15 @@ export const Eestimator = () => {
                             <option value="Insider">New [Insider]</option>
                         </select>
                     </div>
-                    <div class="form-group mx-sm-3 mb-2">
+                    <div className="form-group mx-sm-3 mb-2">
                         <label className="control-label" htmlFor="input3">
                             Years with T-Mobile
-                            <span style={{ fontSize: '0.7rem', marginRight: '15px' }}>
-                                {' '}
+                            <span style={{ fontSize: "0.7rem", marginRight: "15px" }}>
+                                {" "}
                                 [Add on Upgrades only]
                             </span>
                         </label>
-                        <input type="number" id="input3" style={{ width: '50px' }} />
+                        <input type="number" className="requiredInput" style={{ width: "50px" }} />
                     </div>
                 </div>
                 <div className="second form-row p-1 d-flex justify-content-between mt-4">
@@ -282,13 +266,14 @@ export const Eestimator = () => {
                             value={plan}
                             onChange={e => {
                                 setPlan(e.target.value);
-                                setPlanObj(plans.find((p, idx) => p._id == e.target.value));
+                                setPlanObj(plans.find((p, idx) => p.name == e.target.value));
+                                setLine(1)
                             }}
                             id="select3"
                             className="form-select"
                         >
                             {plans.map((plan, i) => (
-                                <option key={plan._id} value={plan._id}>
+                                <option key={plan.name} value={plan.name}>
                                     {plan.name}
                                 </option>
                             ))}
@@ -306,7 +291,7 @@ export const Eestimator = () => {
                         />
                     </div>
                     <div className="form-group col-lg-2 mt-2 d-flex justify-content-center align-items-end exclude-from-print">
-                        <button className="refresh exclude-from-print">
+                        <button onClick={() => window.location.reload()} className="refresh exclude-from-print">
                             <svg
                                 width="13"
                                 height="14"
@@ -317,8 +302,8 @@ export const Eestimator = () => {
                                 <path
                                     d="M12.5 6.11565C12.3166 4.79582 11.7043 3.5729 10.7575 2.63528C9.81066 1.69765 8.58182 1.09734 7.26025 0.926819C5.93869 0.756295 4.59772 1.02502 3.4439 1.69159C2.29009 2.35816 1.38744 3.38561 0.875 4.61565M0.5 1.61566V4.61565H3.5M0.5 7.61565C0.683419 8.93549 1.2957 10.1584 2.24252 11.096C3.18934 12.0337 4.41818 12.634 5.73975 12.8045C7.06131 12.975 8.40228 12.7063 9.5561 12.0397C10.7099 11.3731 11.6126 10.3457 12.125 9.11565M12.5 12.1157V9.11565H9.5"
                                     stroke="#5F5F5F"
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
                                 />
                             </svg>
                             REFRESH
@@ -341,9 +326,9 @@ export const Eestimator = () => {
                                     </tr>
                                     <tr>
                                         <td>Estimated Cost of First Bill:</td>
-                                        <td className="final-price">$85.00</td>
+                                        <td className="final-price">${estimatedCost}</td>
                                     </tr>
-                                    <tr colspan="2" className="plan-info">
+                                    <tr colSpan="2" className="plan-info">
                                         <td>
                                             Please note that all discounts and promos take 1-2 bill
                                             cycles before they will reflect on your bill
@@ -398,7 +383,6 @@ export const Eestimator = () => {
                                     <table className="table">
                                         <tbody className="w-50 mx-auto">
                                             <tr>
-                                                {' '}
                                                 <td className="proration">Proration</td>
                                                 <td className="text-right proration">$10.00</td>
                                             </tr>
@@ -414,10 +398,12 @@ export const Eestimator = () => {
                                                 <td>
                                                     <input
                                                         value={days}
+                                                        min={0}
+                                                        max={30}
                                                         onChange={e => setDays(e.target.value)}
                                                         type="number"
-                                                        style={{ width: '30px' }}
-                                                    ></input>{' '}
+                                                        style={{ width: "30px" }}
+                                                    ></input>{" "}
                                                     days
                                                 </td>
                                             </tr>
@@ -437,33 +423,31 @@ export const Eestimator = () => {
                                 <table className="table">
                                     <tbody>
                                         <tr>
-                                            {' '}
                                             <td className="proration">Upfront Cost</td>
                                         </tr>
                                         <tr>
-                                            {' '}
                                             <td>Total Upfront Cost</td>
                                         </tr>
                                         <tr>
-                                            {' '}
                                             <td className="font-weight-bold">${totalUpfront}</td>
                                         </tr>
                                     </tbody>
                                 </table>
                             </div>
                             <div className="col-8 px-3">
-                                <table className="table ml-1">
+                                <table className="table ml-1 t-down">
                                     <tbody>
                                         <tr>
                                             <td>Down Device payment cost</td>
                                             <td className="discounts">${downPayment}</td>
+                                            <td></td>
                                         </tr>
                                         <tr>
                                             <td>One time activation fee</td>
                                             <td>${activationFee * 35}</td>
                                             <td className="discounts">
                                                 <CurrencyInput
-                                                    className="form-control exclude-from-print"
+                                                    className="form-control exclude-from-print requiredInput"
                                                     value={activationFee}
                                                     required
                                                     onValueChange={(value, name) => {
@@ -483,7 +467,7 @@ export const Eestimator = () => {
                                             <td>${accesories}</td>
                                             <td className="discounts">
                                                 <CurrencyInput
-                                                    className="form-control exclude-from-print"
+                                                    className="form-control exclude-from-print requiredInput"
                                                     value={accesories}
                                                     required
                                                     onValueChange={(value, name) => {
@@ -502,9 +486,9 @@ export const Eestimator = () => {
                                             <td>Tax</td>
                                             <td>${taxes}</td>
                                             <td className="discounts">
-                                                {' '}
+                                                {" "}
                                                 <CurrencyInput
-                                                    className="form-control exclude-from-print"
+                                                    className="form-control exclude-from-print requiredInput"
                                                     value={taxes}
                                                     required
                                                     onValueChange={(value, name) => {
@@ -524,7 +508,7 @@ export const Eestimator = () => {
                                             <td>${tradeIn}</td>
                                             <td className="discounts">
                                                 <CurrencyInput
-                                                    className="form-control exclude-from-print"
+                                                    className="form-control exclude-from-print requiredInput"
                                                     value={tradeIn}
                                                     required
                                                     onValueChange={(value, name) => {
@@ -554,7 +538,7 @@ export const Eestimator = () => {
                     setDownPayment={setDownPayment}
                     setTotalDiscount={setTotalDiscountApprovedDevices}
                 />
-                <div className="row mx-1" style={{ borderTop: '1px solid black' }}>
+                <div className="row mx-1" style={{ borderTop: "1px solid black" }}>
                     <TradeInForm setTotalTradeIn={setTotalTradeIn} />
 
                     <div className="col-md-6">
@@ -590,19 +574,18 @@ export const Eestimator = () => {
                                     />
                                     <CurrencyInput
                                         placeholder="$0.00"
-                                        className="form-control mb-1"
-                                        defaultValue={0}
+                                        className="form-control mb-1 requiredInput"
                                         decimalsLimit={2}
                                         prefix="$"
                                         decimalSeparator="."
                                         groupSeparator=","
+                                        value={employeeDiscount}
                                         onValueChange={value => {
-                                            if (!value) setTotalDiscount(autoPay);
+                                            console.log('val ', value)
+                                            if (!value) { setTotalDiscount(autoPay); setEmployeeDiscount(0); }
                                             else {
-                                                setTotalDiscount(
-                                                    parseFloat(autoPay) + parseFloat(value)
-                                                );
-                                                setEmployeeDiscount(parseFloat(value));
+                                                setTotalDiscount(parseFloat(autoPay) + parseFloat(value));
+                                                setEmployeeDiscount(parseFloat(value))
                                             }
                                         }}
                                     />
@@ -618,15 +601,15 @@ export const Eestimator = () => {
                         </div>
                     </div>
                 </div>
-                {costs && <PlanComparison setPlanComparisons={setPlanComparisons} costs={costs} />}
+                {costs && planCost && <PlanComparison setPlanComparisons={setPlanComparisons} costs={costs} />}
                 <div className="row h-100 mt-5">
                     <p className="quote">DESCRIPTION OF PLANS & BENEFITS</p>
                     <div className="col-8 ">
                         <div className="col-12 h-100 py-2 benefits">
                             <ul>
                                 {planObj?.benefits.map((b, idx) => (
-                                    <li>
-                                        <strong>{b.name}:</strong>{' '}
+                                    <li key={idx}>
+                                        <strong>{b.name}:</strong>{" "}
                                         {b.benefitDetails.map((bd, i) => bd.description)}
                                     </li>
                                 ))}
@@ -636,11 +619,11 @@ export const Eestimator = () => {
                     <div className="col-4">
                         <div className="col-12 h-100 py-2 details">
                             Store Phone Number
-                            <p style={{ fontSize: '14px', color: 'gray' }}>
+                            <p style={{ fontSize: "14px", color: "gray" }}>
                                 Call this number first if need help with your account
                             </p>
                             <input
-                                className={`w-100 mb-2`}
+                                className={`w-100 mb-2 requiredInput`}
                                 title="Please enter exactly 10 digits"
                                 required
                                 pattern="[0-9]{10}"
@@ -651,14 +634,14 @@ export const Eestimator = () => {
                                 onChange={handlePhoneInput}
                             />
                             Manager Name
-                            <input className="w-100 mb-2"></input>
-                            <p style={{ color: '#E20074', fontWeight: 'bold' }}>Notes</p>
+                            <input className="w-100 mb-2 requiredInput"></input>
+                            <p style={{ color: "#E20074", fontWeight: "bold" }}>Notes</p>
                             <textarea
                                 value={notes}
                                 onChange={e => setNotes(e.target.value)}
-                                class="form-control exclude-from-print"
+                                className="form-control exclude-from-print requiredInput"
                             />
-                            <p style={{ textDecoration: 'underline' }}>{notes}</p>
+                            <p className="note-p" style={{ textDecoration: "underline" }}>{notes}</p>
                         </div>
                     </div>
                 </div>

@@ -199,6 +199,10 @@ input {
   font-weight: 700;
 }
 
+.requiredInput {
+  background-color: rgb(255, 207, 149) !important;
+}
+
 .discount-col tbody tr,
 .discount-col tbody td {
   background: rgb(56, 56, 56) !important;
@@ -242,9 +246,14 @@ input {
   font-size: 18px;
   border: 0.5px solid #000000;
 }
-
+.note-p {
+  display: none !important;
+}
 /* In your CSS file */
 @media print {
+  .note-p {
+    display: block !important;
+  }
   .exclude-from-print {
     display: none !important;
   }
@@ -259,6 +268,9 @@ input {
 
   .promotional-discounts input {
     border: none;
+  }
+  input {
+    background-color: white !important;
   }
 }
 
@@ -302,4 +314,17 @@ input:invalid:focus {
     overflow: visible !important; /* Allow content to overflow */
     /* Add any other print-specific styles you need */
   }
+  .requiredInput{
+    background-color: white !important;
+  }
 }
+
+.t-down td {
+   vertical-align: middle;
+}
+
+.discount-header {
+  font-weight: 700;
+  color: #00A99D;
+}
+

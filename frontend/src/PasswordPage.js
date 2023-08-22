@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState } from "react";
 
 function PasswordPage({ setPasswordVerified }) {
-    const [password, setPassword] = useState('');
-    const correctPassword = 'your_password';
+    const [password, setPassword] = useState("");
+    const correctPassword = "your_password";
 
     const handlePasswordChange = (event) => {
         setPassword(event.target.value);
@@ -12,7 +12,7 @@ function PasswordPage({ setPasswordVerified }) {
         if (password === correctPassword) {
             setPasswordVerified(true);
         } else {
-            alert('Incorrect password. Please try again.');
+            alert("Incorrect password. Please try again.");
         }
     };
 
@@ -26,7 +26,7 @@ function PasswordPage({ setPasswordVerified }) {
                             Password:
                         </label>
                         <input onChange={handlePasswordChange} type="password" className="form-control mr-2" />
-                        <button className='btn btn-primary' onClick={handleSubmit}>
+                        <button className="btn btn-primary" onClick={handleSubmit}>
                             Submit
                         </button>
                     </div>

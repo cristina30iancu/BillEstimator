@@ -1,23 +1,27 @@
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faEdit, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
-import { useState } from 'react';
-import CurrencyInput from 'react-currency-input-field';
+import { useState } from "react";
+import CurrencyInput from "react-currency-input-field";
 
-export const TradeInForm = () => {
+export const TradeInForm = ({setTotalTradeIn}) => {
     const [rows, setRows] = useState([{}]);
     const [editingIndex, setEditingIndex] = useState(-1);
     const [total, setTotal] = useState()
 
     const handleDeleteRow = (index) => {
         const updatedRows = rows.filter((_, i) => i !== index);
-        setRows(updatedRows);
+        if(updatedRows.length == 0) setRows([{}])
+        else setRows(updatedRows);
+        const sumFinalCost = updatedRows.reduce((total, row) => parseFloat(total) + (parseFloat(row.costMonth) || 0), 0);
+        setTotal(parseFloat(sumFinalCost).toFixed(2))
+        setTotalTradeIn(parseFloat(sumFinalCost).toFixed(2))
     };
 
     const handleInputChange = (e, index) => {
         let tradeIn = rows[index].tradeIn ?? 0
         let costMonth = rows[index].costMonth ?? 0
         const { name, value } = e.target;
-        if (name === 'quantity') {
+        if (name === "quantity") {
             if (tradeIn) {
                 costMonth = tradeIn / 24 * value
             }
@@ -26,7 +30,7 @@ export const TradeInForm = () => {
         updatedRows[index] = {
             ...updatedRows[index],
             [name]: value,
-            ['costMonth']: costMonth
+            ["costMonth"]: costMonth
         };
         setRows(updatedRows);
     };
@@ -35,15 +39,15 @@ export const TradeInForm = () => {
         let costMonth = rows[index].costMonth ?? 0
         let quantity = rows[index].quantity ?? 1
         value = value ?? 0
-        if (name === 'tradeIn') {
+        if (name === "tradeIn") {
             costMonth = (value / 24) * quantity
         }
         const updatedRows = [...rows];
         updatedRows[index] = {
             ...updatedRows[index],
             [name]: value,
-            ['costMonth']: parseFloat(costMonth).toFixed(2),
-            ['quantity']: quantity
+            ["costMonth"]: parseFloat(costMonth).toFixed(2),
+            ["quantity"]: quantity
         };
         setRows(updatedRows);
     };
@@ -65,6 +69,7 @@ export const TradeInForm = () => {
         setRows([...rows]);
         const sumFinalCost = rows.reduce((total, row) => parseFloat(total) + (parseFloat(row.costMonth) || 0), 0);
         setTotal(parseFloat(sumFinalCost).toFixed(2))
+        setTotalTradeIn(parseFloat(sumFinalCost).toFixed(2))
     };
 
     const renderRow = (row, index) => {
@@ -73,9 +78,9 @@ export const TradeInForm = () => {
                 <div className="col-md-5 exclude-from-print">
                     <input
                         id={`select`}
-                        className="form-control"
+                        className="form-control requiredInput"
                         name={`select`}
-                        value={row[`select`] || ''}
+                        value={row[`select`] || ""}
                         required
                         onChange={(e) => handleInputChange(e, index)}
                     >
@@ -84,9 +89,9 @@ export const TradeInForm = () => {
                 <div className="col-md-3 exclude-from-print">
                     <CurrencyInput
                         id={`tradeIn`}
-                        className="form-control"
+                        className="form-control requiredInput"
                         name={`tradeIn`}
-                        value={row[`tradeIn`] || ''}
+                        value={row[`tradeIn`] || ""}
                         required
                         onValueChange={(value, name) => handleCurrencyInputChange(value, name, index)} placeholder="$0.00"
                         decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
@@ -94,11 +99,10 @@ export const TradeInForm = () => {
                 </div>
                 <div className="col-md-2 exclude-from-print">
                     <select id={`quantity`}
-                        className="form-select"
+                        className="form-select requiredInput"
                         name={`quantity`}
-                        value={row[`quantity`] || '1'}
+                        value={row[`quantity`] || "1"}
                         required
-                        defaultValue={1}
                         onChange={(e) => handleInputChange(e, index)}>
                         {Array.from({ length: 10 }, (_, index) => (
                             <option key={index + 1} value={index + 1}>
@@ -112,7 +116,7 @@ export const TradeInForm = () => {
                         id={`costMonth`}
                         className="form-control"
                         name={`costMonth`}
-                        value={row[`costMonth`] || ''}
+                        value={row[`costMonth`] || ""}
                         required
                         disabled placeholder="$0.00"
                         decimalsLimit={2} prefix="$" decimalSeparator="." groupSeparator=","
@@ -127,7 +131,7 @@ export const TradeInForm = () => {
             <div key={index} className=" form-row  d-flex justify-content-between align-items-center">
                 <div className="form-group col-md-5">
                     <span>{row[`select`]}</span>
-                    <FontAwesomeIcon className='ml-4 exclude-from-print' onClick={() => handleEditRow(index)} icon={faEdit} />
+                    <FontAwesomeIcon className="ml-4 exclude-from-print" onClick={() => handleEditRow(index)} icon={faEdit} />
                     <FontAwesomeIcon icon={faTrashAlt} onClick={() => handleDeleteRow(index)} className="exclude-from-print ml-1" />
                 </div>
                 <div className="form-group col-md-3">
@@ -136,7 +140,7 @@ export const TradeInForm = () => {
                 <div className="form-group col-md-2">
                     <p>{row[`quantity`]}</p>
                 </div>
-                <div className="form-group col-md-2 text-center"> {/* Add 'text-center' class */}
+                <div className="form-group col-md-2 text-center"> {/* Add "text-center" className */}
         <p>${row[`costMonth`]}</p>
     </div>
             </div>
@@ -187,7 +191,7 @@ export const TradeInForm = () => {
                         <label className="form-label mr-2" htmlFor="inputField">
                             Total Trade-In Credit
                         </label>
-                        <CurrencyInput placeholder="$0.00" value={total} className='form-control'
+                        <CurrencyInput placeholder="$0.00" value={total} className="form-control"
                             decimalsLimit={2} prefix="$" disabled decimalSeparator="." groupSeparator=","
                         />  </div>
                 </div>
