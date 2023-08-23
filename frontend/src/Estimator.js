@@ -95,9 +95,12 @@ export const Estimator = () => {
         const res = await fetch(SERVER_URL + "/api/plans");
         const data = await res.json();
         setPlans(data);
-        setPlan(data[0]?.name);
-        setPlanObj(data[0]);
-        setLine(data[0].linePrices[0]?.line);
+        if(data.length > 0){
+            setPlan(data[0]?.name);
+            setPlanObj(data[0]);
+            setLine(data[0].linePrices[0]?.line);
+        }
+        
     };
 
     const computeCost = () => {

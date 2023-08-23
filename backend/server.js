@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const bcrypt = require('bcrypt');
 require('dotenv').config();
 
 const app = express();
@@ -25,3 +26,5 @@ connectDB().then(() => {
 // Defining, declaring and using the endpoints here
 const endpoints = require('./endpoints');
 app.use('/api', endpoints);
+const password_endpoints = require('./password-endpoints');
+app.use('/api', password_endpoints);

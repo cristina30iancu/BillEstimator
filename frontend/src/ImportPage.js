@@ -13,10 +13,11 @@ function ImportPage() {
 
     const handleFileChange = (event) => {
         const selectedFile = event.target.files[0];
-        if (selectedFile && selectedFile.name.endsWith(".xlsm")) {
+        if (selectedFile && (selectedFile.name.endsWith(".xlsm") || selectedFile.name.endsWith(".xlsx")
+            || selectedFile.name.endsWith(".xls"))) {
             setFile(selectedFile);
         } else {
-            alert("Please choose a valid .xlsm file.");
+            alert("Please choose a valid excel file.");
         }
     };
 
@@ -75,16 +76,16 @@ function ImportPage() {
     }
     const handleSubmit = async () => {
         await handleDelete()
-       await handleAddPlans()
-      await  handleAddBenefits()
+        await handleAddPlans()
+        await handleAddBenefits()
     }
 
     const handleDeleteButtonClick = () => {
         setShowModal(true);
     };
 
-    const handleDeleteConfirm = () => {
-        setShowModal(false);
+    const handleDeleteConfirm = async () => {
+        await handleDelete()
     };
 
     const handleDeleteCancel = () => {
@@ -114,7 +115,7 @@ function ImportPage() {
                         <label className="form-label mr-2" htmlFor="inputField">
                             Import excel file
                         </label>
-                        <input onChange={handleFileChange} type="file" accept=".xlsm" className="form-control mr-2" />
+                        <input onChange={handleFileChange} type="file" accept=".xlsm, .xlsx, .xls" className="form-control mr-2" />
                         <button disabled={!file} className="btn btn-primary mr-2" onClick={handleSubmit}>
                             Submit
                         </button>
