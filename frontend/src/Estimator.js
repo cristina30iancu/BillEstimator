@@ -12,7 +12,7 @@ export const Estimator = () => {
     const [plans, setPlans] = useState([]);
     const [planObj, setPlanObj] = useState(undefined);
     const [plan, setPlan] = useState(undefined);
-    const [loyalty, setLoyalty] = useState();
+    const [loyalty, setLoyalty] = useState("New");
     const [line, setLine] = useState();
     const [planCost, setPlanCost] = useState(0);
     const [autoPay, setAutoPay] = useState(0);
@@ -43,7 +43,7 @@ export const Estimator = () => {
 
     useEffect(() => {
         setOverallDiscount(
-            totalDiscount + totalDiscountApprovedDevices + totalDiscountCarrierPlans
+            parseFloat(totalDiscount) + parseFloat(totalDiscountApprovedDevices) + parseFloat(totalDiscountCarrierPlans)
         );
     }, [employeeDiscount, totalDiscount, totalDiscountApprovedDevices, totalDiscountCarrierPlans]);
 
@@ -74,16 +74,26 @@ export const Estimator = () => {
     }, [loyalty, planComparisons, totalPlanCost, costs, days]);
 
     useEffect(() => {
+        computeNextBill();
         updateEstimatedCost()
-    }, [planComparisons]);
+    }, [planComparisons, loyalty]);
+
+    useEffect(() => {
+        if(loyalty != "Existing")
+            setDays(30)
+        else setDays(0)
+    }, [loyalty]);
+
 
     useEffect(() => {
         computeCost();
+        computeNextBill();
+        updateEstimatedCost()
     }, [plan, line, loyalty]);
 
     useEffect(() => {
         console.log('updating disc ', totalDiscount)
-         setCosts([planCost, totalPlanCost, totalApprovedDevicesCost, 0, 0, - parseFloat(totalDiscount), totalTradeIn])
+        setCosts([planCost, totalPlanCost, totalApprovedDevicesCost, 0, 0, - parseFloat(totalDiscount), totalTradeIn])
     }, [planCost, totalPlanCost, totalApprovedDevicesCost, totalTradeIn, totalDiscount, autoPay, employeeDiscount])
 
 
@@ -95,12 +105,12 @@ export const Estimator = () => {
         const res = await fetch(SERVER_URL + "/api/plans");
         const data = await res.json();
         setPlans(data);
-        if(data.length > 0){
+        if (data.length > 0) {
             setPlan(data[0]?.name);
             setPlanObj(data[0]);
             setLine(data[0].linePrices[0]?.line);
         }
-        
+
     };
 
     const computeCost = () => {
@@ -115,27 +125,27 @@ export const Estimator = () => {
                 setPlanCost(line * 20);
                 setAutoPay(0)
                 console.log(employeeDiscount, totalDiscount)
-                setTotalDiscount(employeeDiscount)
+                setTotalDiscount(parseFloat(employeeDiscount))
             } else {
                 const promotions = selectedPlan?.linePrices.map((p, i) => p.freeLinePromotion)
                 const MRCs = selectedPlan?.linePrices.map((p, i) => p.MRC)
-    
+
                 let previousLineMRC = 0;
                 if (line > 1) {
                     previousLineMRC = selectedPlan?.linePrices.find(
                         (l, i) => l.line == line - 1
                     ).MRC;
                 }
-    
+
                 let combinedMRCNew = selectedLine?.combinedMRCNew;
                 let combinedMRCNewWithAutoPay = selectedLine?.MRC - 5;
-    
+
                 if (line > 1) {
                     combinedMRCNewWithAutoPay = calculateHi(promotions, firstMRC - 5, line, MRCs)
                 }
-    
+
                 let autoPay = combinedMRCNew - combinedMRCNewWithAutoPay;
-    
+
                 if (loyalty === "Insider") {
                     let cost = (combinedMRCNew - autoPay) * 0.8 + autoPay;
                     setPlanCost(cost);
@@ -147,8 +157,8 @@ export const Estimator = () => {
                 }
                 setAutoPay(autoPay);
                 let d = parseFloat(autoPay) + parseFloat(employeeDiscount)
-                setTotalDiscount(d);
-            }            
+                setTotalDiscount(parseFloat(d));
+            }
         }
     };
 
@@ -170,7 +180,7 @@ export const Estimator = () => {
     };
 
     const computeNextBill = () => {
-        if (loyalty == "Existing") {
+        if (loyalty != "New") {
             let monthlyPlanLines =
                 planComparisons.find(
                     (plan, i) => plan.comparison == "Monthly Plan Lines"
@@ -185,12 +195,16 @@ export const Estimator = () => {
                 )?.oldPlan ?? 0;
             let cost = parseFloat(proration) + parseFloat(monthlyPlanLinesOld) + parseFloat(otherNewComparisons);
             setNextBill(parseFloat(cost).toFixed(2));
-        } else setNextBill(0)
+            setEstimatedCost(parseFloat(cost).toFixed(2));
+        }
     };
 
     const updateEstimatedCost = () => {
-        let newPlan = planComparisons.reduce((total, row) => parseFloat(total) + (parseFloat(row.newPlan) || 0), 0);
-        setEstimatedCost(parseFloat(newPlan).toFixed(2))
+        if (loyalty != "Existing") {
+            let newPlan = planComparisons.reduce((total, row) => parseFloat(total) + (parseFloat(row.newPlan) || 0), 0);
+            setEstimatedCost(parseFloat(newPlan).toFixed(2))
+            setNextBill(parseFloat(newPlan).toFixed(2))
+        } 
     }
 
     return (
@@ -208,7 +222,7 @@ export const Estimator = () => {
                         <label className="control-label mr-3" htmlFor="input1">
                             Customer Name
                         </label>
-                        <input type="text" className="requiredInput"/>
+                        <input type="text" className="requiredInput" />
                     </div>
                     <div className="form-group mx-sm-3 mb-2">
                         <label className="control-label mr-3">Customer Loyalty</label>
@@ -585,9 +599,9 @@ export const Estimator = () => {
                                         value={employeeDiscount}
                                         onValueChange={value => {
                                             console.log('val ', value)
-                                            if (!value) { setTotalDiscount(autoPay); setEmployeeDiscount(0); }
+                                            if (!value) { setTotalDiscount(parseFloat(autoPay)); setEmployeeDiscount(0); }
                                             else {
-                                                setTotalDiscount(parseFloat(autoPay) + parseFloat(value));
+                                                setTotalDiscount(parseFloat(parseFloat(autoPay) + parseFloat(value)));
                                                 setEmployeeDiscount(parseFloat(value))
                                             }
                                         }}
@@ -613,7 +627,7 @@ export const Estimator = () => {
                                 {planObj?.benefits.map((b, idx) => (
                                     <li key={idx}>
                                         <strong>{b.name}:</strong>{" "}
-                                        {b.benefitDetails.map((bd, i) => bd.description)}
+                                        {b.benefitDetails.map((bd, i) => bd.description + "; ")}
                                     </li>
                                 ))}
                             </ul>

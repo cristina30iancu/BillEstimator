@@ -104,9 +104,10 @@ router.post('/benefits', upload.single('file'), async (req, res) => {
 
         let firstBenefit = data[0]?.__EMPTY_1
         for (const row of data) {
+            console.log(row)
             const planName = row.__EMPTY;
-            let benefitName = row.__EMPTY_1;
-            if (benefitName.trim() === '') {
+            let benefitName = row.__EMPTY_1;            
+            if (!benefitName || benefitName?.length < 1 || benefitName === '') {
                 benefitName = firstBenefit
             } else {
                 firstBenefit = benefitName
